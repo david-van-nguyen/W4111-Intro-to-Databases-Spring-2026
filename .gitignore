@@ -1,1 +1,4 @@
 /.venv/
+reset_mysql_password.sh
+start_mysql.sh
+RESET_MYSQL_PASSWORD.md
