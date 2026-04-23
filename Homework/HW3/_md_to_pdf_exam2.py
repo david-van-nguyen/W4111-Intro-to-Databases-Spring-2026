@@ -191,6 +191,33 @@ def render(md_path: Path, out_path: Path) -> None:
     pdf.save(str(out_path))
 
 
+def stamp_page_numbers(pdf_path: Path) -> None:
+    """Write 'Page N of M' centered in the bottom margin of every page."""
+    doc = pymupdf.open(str(pdf_path))
+    total = doc.page_count
+    for i, page in enumerate(doc, start=1):
+        w, h = page.rect.width, page.rect.height
+        text = f"Page {i} of {total}"
+        fontsize = 9
+        # crude width estimate: ~0.5 * fontsize per char for Helvetica
+        text_w = len(text) * fontsize * 0.5
+        x = (w - text_w) / 2
+        y = h - 24  # 24pt (~0.33in) above bottom edge
+        page.insert_text(
+            (x, y),
+            text,
+            fontname="helv",
+            fontsize=fontsize,
+            color=(0.35, 0.35, 0.35),
+        )
+    # pymupdf forbids overwriting the source path in non-incremental mode:
+    # save to a sibling file then atomically replace the original.
+    tmp_path = pdf_path.with_suffix(".stamped.pdf")
+    doc.save(str(tmp_path), deflate=True, garbage=3)
+    doc.close()
+    tmp_path.replace(pdf_path)
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         print("usage: python _md_to_pdf_exam2.py <file.md>", file=sys.stderr)
@@ -219,10 +246,13 @@ def main() -> None:
     else:
         stabilized = False
 
+    # Stamp "Page N of M" on every page as the final step.
+    stamp_page_numbers(out_path)
+
     size_kb = out_path.stat().st_size // 1024
     status = "stabilized" if stabilized else "did NOT stabilize"
     print(f"  {md_path.name} -> {out_path.name} ({size_kb} KB); "
-          f"TOC {status} after {attempt + 1} pass(es)")
+          f"TOC {status} after {attempt + 1} pass(es); page numbers stamped")
 
 
 if __name__ == "__main__":

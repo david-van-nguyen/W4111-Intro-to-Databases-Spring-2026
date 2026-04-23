@@ -235,6 +235,27 @@ def render_toc_pdf(entries: list[tuple[int, str, int]], offset: int) -> int:
     return n
 
 
+def add_page_numbers(doc: pymupdf.Document) -> None:
+    """Stamp 'Page N of M' centered at the bottom of every page."""
+    total = doc.page_count
+    for i, page in enumerate(doc, start=1):
+        label = f"Page {i} of {total}"
+        rect = page.rect
+        font_size = 9
+        text_width = pymupdf.get_text_length(
+            label, fontname="helv", fontsize=font_size
+        )
+        x = (rect.width - text_width) / 2
+        y = rect.height - 28  # ~0.39in from bottom (within 0.75in margin)
+        page.insert_text(
+            (x, y),
+            label,
+            fontname="helv",
+            fontsize=font_size,
+            color=(0.4, 0.4, 0.4),
+        )
+
+
 def merge_with_toc_bookmarks(
     toc_pdf: Path,
     body_pdf: Path,
@@ -245,6 +266,8 @@ def merge_with_toc_bookmarks(
     final = pymupdf.open()
     final.insert_pdf(pymupdf.open(toc_pdf))
     final.insert_pdf(pymupdf.open(body_pdf))
+
+    add_page_numbers(final)
 
     toc_items: list[list] = [[1, "Table of Contents", 1]]
     prev_level = 1
