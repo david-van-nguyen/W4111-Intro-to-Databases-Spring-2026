@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>limit</title>
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #222;
+  max-width: 8.5in;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+h1, h2, h3, h4 { color: #00684A; page-break-after: avoid; }
+h1 { border-bottom: 2px solid #00684A; padding-bottom: 0.2em; }
+h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.15em; margin-top: 1.5em; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f4f4f4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  background: #f4f4f4;
+  padding: 0.75em;
+  border-radius: 4px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #eef5f2; }
+blockquote {
+  border-left: 4px solid #00684A;
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: #555;
+  background: #f9f9f9;
+}
+.codehilite { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>$limit (aggregation stage)</h1>
+<h2>Definition</h2>
+<p><code>$limit</code>
+Limits the number of documents passed to the next stage in the pipeline.</p>
+<h2>Compatibility</h2>
+<p><code>$limit</code>You can use <code>$limit</code> for deployments hosted in the following environments:</p>
+<ul>
+<li>
+<p>MongoDB Atlas: The fully managed service for MongoDB deployments in the cloud</p>
+</li>
+<li>
+<p>MongoDB Enterprise: The subscription-based, self-managed version of MongoDB</p>
+</li>
+<li>
+<p>MongoDB Community: The source-available, free-to-use, and self-managed version of MongoDB</p>
+</li>
+</ul>
+<h2>Syntax</h2>
+<p>The <code>$limit</code> stage has the following prototype form:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$limit</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">positive</span><span class="w"> </span><span class="mf">64</span><span class="o">-</span><span class="nx">bit</span><span class="w"> </span><span class="nx">integer</span><span class="o">&gt;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p><code>$limit</code> takes a positive integer that specifies the maximum number of documents to pass along.</p>
+<p>Starting in MongoDB 5.0, the <code>$limit</code> pipeline aggregation has a 64-bit integer limit. Values passed to the pipeline which exceed this limit will return a invalid argument error.</p>
+<h2>Behavior</h2>
+<h3>Using $limit with Sorted Results</h3>
+<p>If using the <code>$limit</code> stage with any of:</p>
+<ul>
+<li>
+<p>the <code>$sort</code> aggregation stage,</p>
+</li>
+<li>
+<p>the <code>sort()</code> method, or</p>
+</li>
+<li>
+<p>the <code>sort</code> field to the <code>findAndModify</code> command or the <code>findAndModify()</code> shell method,</p>
+</li>
+</ul>
+<p>be sure to include at least one field in your sort that contains unique values, before passing results to the <code>$limit</code> stage.</p>
+<p>Sorting on fields that contain duplicate values may return an inconsistent sort order for those duplicate fields over multiple executions, especially when the collection is actively receiving writes.</p>
+<p>The easiest way to guarantee sort consistency is to include the <code>_id</code> field in your sort query.</p>
+<p>See the following for more information on each:</p>
+<ul>
+<li>
+<p>Consistent sorting with $sort (aggregation)</p>
+</li>
+<li>
+<p>Consistent sorting with the sort() shell method</p>
+</li>
+<li>
+<p>Consistent sorting with the findAndModify command</p>
+</li>
+<li>
+<p>Consistent sorting with the findAndModify() shell method</p>
+</li>
+</ul>
+<h2>Examples</h2>
+<p><Tabs></p>
+<p><Tab name="MongoDB Shell"></p>
+<p>Consider the following example:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">article</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$limit</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]);</span>
+</code></pre></div>
+
+<p>This operation returns only the first 5 documents passed to it by the pipeline. <code>$limit</code> has no effect on the content of the documents it passes.</p>
+<p></Tab></p>
+<p><Tab name="C#"></p>
+<p><code>$limit</code></p>
+<p>Limit()</p>
+<p>limits the number of returned documents to <code>10</code>:</p>
+<p>To use the MongoDB .NET/C# driver to add a <code>$limit</code> stage to an aggregation pipeline, call the Limit() method on a <code>PipelineDefinition</code> object.</p>
+<p>The following example creates a pipeline stage that limits the number of returned documents to <code>10</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">EmptyPipelineDefinition</span><span class="o">&lt;</span><span class="n">BsonDocument</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">Limit</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="Node.js"></p>
+<p><code>$limit</code></p>
+<p>limits the number of returned documents to <code>10</code></p>
+<p>To use the MongoDB Node.js driver to add a <code>$limit</code> stage to an aggregation pipeline, use the <code>$limit</code> operator in a pipeline object.</p>
+<p>The following example creates a pipeline stage that limits the number of returned documents to <code>10</code>. The example then runs the aggregation pipeline:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nx">$limit</span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">}];</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cursor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="nx">pipeline</span><span class="p">);</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">cursor</span><span class="p">;</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p></Tabs></p>
+<p>When a <code>$sort</code> precedes a <code>$limit</code> and there are no intervening stages that modify the number of documents, the optimizer can coalesce the <code>$limit</code> into the <code>$sort</code>. This allows the <code>$sort</code> operation to only maintain the top <code>n</code> results as it progresses, where <code>n</code> is the specified limit, and ensures that MongoDB only needs to store <code>n</code> items in memory. This optimization still applies when <code>allowDiskUse</code> is <code>true</code> and the <code>n</code> items exceed the aggregation memory limit.</p>
+<h2>Learn More</h2>
+<p>To learn how to use <code>$limit</code> in a full example, see the Filter Data tutorial.</p>
+</body>
+</html>

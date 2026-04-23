@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HW3_Exam_Study_Guide</title>
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #222;
+  max-width: 8.5in;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+h1, h2, h3, h4 { color: #00684A; page-break-after: avoid; }
+h1 { border-bottom: 2px solid #00684A; padding-bottom: 0.2em; }
+h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.15em; margin-top: 1.5em; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f4f4f4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  background: #f4f4f4;
+  padding: 0.75em;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  page-break-inside: avoid;
+  font-size: 0.85em;
+}
+pre code { background: none; padding: 0; white-space: pre-wrap; }
+table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #eef5f2; }
+blockquote {
+  border-left: 4px solid #00684A;
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: #555;
+  background: #f9f9f9;
+}
+.codehilite { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>W4111 — Exam Study Guide</h1>
+<h2>MongoDB (<code>classicmodels</code>) + Neo4j (sample Movie DB)</h2>
+<hr />
+<h2>How to use this guide</h2>
+<p>Your professor's exam guidance was explicit:</p>
+<blockquote>
+<p><em>"I </em><em>strongly</em><em> advise you to understand the <code>classicmodels</code> sample data from homework 3 for MongoDB. You are also responsible for having taken the Neo4j tutorial for the Movie Database that was part of homework 3 setup. You are responsible for being able to query the <code>classicmodels</code> data and the Neo4j sample movie dataset. I do provide a summary of the data in the exam, but you should ensure you understand it from the homework. WRT to MongoDB, you are responsible for understanding how to use the following aggregation stages/operators: count, group, limit, lookup, match, project, sort, unwind."</em></p>
+</blockquote>
+<p>This guide mirrors that guidance exactly:</p>
+<ol>
+<li>A <strong>data-model refresher</strong> for both datasets — structure, relationships, and the denormalized shape HW3 loaded into MongoDB.</li>
+<li>A <strong>stage-by-stage MongoDB cheat sheet</strong> covering only the eight operators the professor listed.</li>
+<li>A <strong>Cypher / Neo4j cheat sheet</strong> matched to the Movie graph you actually worked with.</li>
+<li><strong>Practice problems in HW3 style</strong> — solutions provided — that should feel indistinguishable from M1/M2/M3 and N1/N2/N3.</li>
+<li>A <strong>common-pitfalls</strong> appendix.</li>
+</ol>
+<p>If you can work every practice problem in this guide without peeking, you are in good shape.</p>
+<hr />
+<h1>Part 1 — The <code>classicmodels</code> data (MongoDB)</h1>
+<h2>1.1 The original relational schema</h2>
+<p><code>classicmodels</code> models a small scale-model retailer. In its native SQL form there are eight tables:</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Row count</th>
+<th>PK</th>
+<th>Important FKs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>offices</code></td>
+<td>7</td>
+<td><code>officeCode</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>employees</code></td>
+<td>23</td>
+<td><code>employeeNumber</code></td>
+<td><code>officeCode</code>, <code>reportsTo</code> <em>(self-join)</em></td>
+</tr>
+<tr>
+<td><code>customers</code></td>
+<td>122</td>
+<td><code>customerNumber</code></td>
+<td><code>salesRepEmployeeNumber</code></td>
+</tr>
+<tr>
+<td><code>productlines</code></td>
+<td>7</td>
+<td><code>productLine</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>products</code></td>
+<td>110</td>
+<td><code>productCode</code></td>
+<td><code>productLine</code></td>
+</tr>
+<tr>
+<td><code>orders</code></td>
+<td>326</td>
+<td><code>orderNumber</code></td>
+<td><code>customerNumber</code></td>
+</tr>
+<tr>
+<td><code>orderdetails</code></td>
+<td>2 996</td>
+<td>(<code>orderNumber</code>, <code>orderLineNumber</code>)</td>
+<td><code>orderNumber</code>, <code>productCode</code></td>
+</tr>
+<tr>
+<td><code>payments</code></td>
+<td>273</td>
+<td>(<code>customerNumber</code>, <code>checkNumber</code>)</td>
+<td><code>customerNumber</code></td>
+</tr>
+</tbody>
+</table>
+<p>Core relationship chain (memorize this — every interesting query traverses part of it):</p>
+<div class="codehilite"><pre><span></span><code>productlines --1:N--&gt; products
+                         |
+                         N:M (via orderdetails line items)
+                         |
+orders --1:N--&gt; orderdetails
+  |
+  N:1
+  |
+customers --N:1--&gt; employees --N:1--&gt; offices
+  |
+  1:N
+  |
+payments
+</code></pre></div>
+
+<h2>1.2 What HW3 actually loaded into MongoDB</h2>
+<p>HW3 only loads <strong>two collections</strong>, and both are denormalized. This matters because it determines which pipelines even make sense.</p>
+<h3><code>classicmodels.customers</code> — 122 documents</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nx">customerNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">103</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">customerName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Atelier graphique&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">contact</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">lastName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Schmitt&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">firstName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Carine &quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">phone</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;40.32.2555&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">address</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">addressLine1</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;54, rue Royale&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">addressLine2</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">city</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Nantes&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">state</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">country</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;France&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">postalCode</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;44000&quot;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nx">salesRepNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">1370</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">creditLimit</span><span class="o">:</span><span class="w"> </span><span class="mf">21000.0</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Notes:
+- <code>contact</code> and <code>address</code> are embedded sub-documents. Query nested fields with <strong>dot notation</strong>: <code>"address.country": "France"</code>.
+- <code>salesRepNumber</code> is a foreign key to <code>employees</code> — not embedded.</p>
+<h3><code>classicmodels.orders</code> — 326 documents</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nx">orderNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">10100</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">orderDate</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2003-01-06&quot;</span><span class="p">,</span><span class="w">          </span><span class="c1">// note: string, not Date</span>
+<span class="w">  </span><span class="nx">requiredDate</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2003-01-13&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">shippedDate</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2003-01-10&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Shipped&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">comments</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">customerNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">363</span><span class="p">,</span><span class="w">              </span><span class="c1">// FK → customers</span>
+<span class="w">  </span><span class="nx">orderDetails</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">productCode</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S18_1749&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantityOrdered</span><span class="o">:</span><span class="w"> </span><span class="mf">30</span><span class="p">,</span><span class="w"> </span><span class="nx">priceEach</span><span class="o">:</span><span class="w"> </span><span class="mf">136.00</span><span class="p">,</span><span class="w"> </span><span class="nx">orderLineNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">productCode</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S18_2248&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantityOrdered</span><span class="o">:</span><span class="w"> </span><span class="mf">50</span><span class="p">,</span><span class="w"> </span><span class="nx">priceEach</span><span class="o">:</span><span class="w">  </span><span class="mf">55.09</span><span class="p">,</span><span class="w"> </span><span class="nx">orderLineNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">productCode</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S18_4409&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantityOrdered</span><span class="o">:</span><span class="w"> </span><span class="mf">22</span><span class="p">,</span><span class="w"> </span><span class="nx">priceEach</span><span class="o">:</span><span class="w">  </span><span class="mf">75.46</span><span class="p">,</span><span class="w"> </span><span class="nx">orderLineNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">productCode</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S24_3969&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">quantityOrdered</span><span class="o">:</span><span class="w"> </span><span class="mf">49</span><span class="p">,</span><span class="w"> </span><span class="nx">priceEach</span><span class="o">:</span><span class="w">  </span><span class="mf">35.29</span><span class="p">,</span><span class="w"> </span><span class="nx">orderLineNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Key design facts:
+- The relational <code>orderdetails</code> table became an <strong>embedded array</strong> inside each <code>orders</code> document. That is <em>the</em> reason <code>$unwind</code> shows up so often.
+- There are <code>2 996</code> line items total — the number you should see after a single <code>$unwind "$orderDetails"</code>.
+- Dates are stored as ISO strings like <code>"2003-01-06"</code>. Lexicographic sort still yields correct chronological ordering. If you ever need real date math, use <code>$toDate</code> first.</p>
+<hr />
+<h1>Part 2 — MongoDB aggregation cheat sheet</h1>
+<p>The professor listed exactly these stages/operators: <strong><code>$count, $group, $limit, $lookup, $match, $project, $sort, $unwind</code></strong>. Learn them cold.</p>
+<h2>2.1 SQL ↔ MQL mental map</h2>
+<table>
+<thead>
+<tr>
+<th>SQL</th>
+<th>MQL stage</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WHERE</code></td>
+<td><code>$match</code></td>
+<td>Put as early as possible (uses indexes).</td>
+</tr>
+<tr>
+<td><code>SELECT col1, col2 AS x, expr</code></td>
+<td><code>$project</code></td>
+<td>1 = include, 0 = exclude, or assign an expression.</td>
+</tr>
+<tr>
+<td><code>ORDER BY</code></td>
+<td><code>$sort</code></td>
+<td><code>{ field: 1 }</code> asc, <code>{ field: -1 }</code> desc. Multi-key preserves order.</td>
+</tr>
+<tr>
+<td><code>LIMIT</code></td>
+<td><code>$limit</code></td>
+<td>Always pair with <code>$sort</code> for deterministic output.</td>
+</tr>
+<tr>
+<td><code>SELECT COUNT(*)</code></td>
+<td><code>$count: "n"</code></td>
+<td>Terminal stage; output is a single doc <code>{n: ...}</code>.</td>
+</tr>
+<tr>
+<td><em>(flatten array)</em></td>
+<td><code>$unwind</code></td>
+<td>Turns one doc w/ array of length <em>n</em> into <em>n</em> docs.</td>
+</tr>
+<tr>
+<td><code>GROUP BY</code> + aggregates</td>
+<td><code>$group</code></td>
+<td><code>_id</code> is the grouping key; everything else is an accumulator.</td>
+</tr>
+<tr>
+<td><code>JOIN</code></td>
+<td><code>$lookup</code></td>
+<td>Always returns an <strong>array</strong> field; usually followed by <code>$unwind</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2>2.2 Each stage, with a <code>classicmodels</code> example</h2>
+<h3><code>$match</code> — WHERE</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;address.country&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;France&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>Supports full query-operator syntax: <code>$eq</code>, <code>$ne</code>, <code>$gt</code>, <code>$lt</code>, <code>$gte</code>, <code>$lte</code>, <code>$in</code>, <code>$nin</code>, <code>$and</code>, <code>$or</code>, <code>$regex</code>, <code>$exists</code>.</p>
+<h3><code>$project</code> — SELECT / reshape</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$project</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w">                         </span><span class="c1">// drop _id</span>
+<span class="w">    </span><span class="nx">customerNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w">              </span><span class="c1">// keep as-is</span>
+<span class="w">    </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$customerName&quot;</span><span class="p">,</span><span class="w">          </span><span class="c1">// rename</span>
+<span class="w">    </span><span class="nx">country</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$address.country&quot;</span><span class="p">,</span><span class="w">    </span><span class="c1">// lift nested</span>
+<span class="w">    </span><span class="nx">tier</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$cond</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gt</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;$creditLimit&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">100000</span><span class="p">]</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="s2">&quot;gold&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;silver&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}}</span>
+</code></pre></div>
+
+<p>Remember: reference a field value with the <code>$</code>-prefix (<code>"$customerName"</code>), include/exclude with <code>1</code>/<code>0</code>.</p>
+<h3><code>$sort</code> — ORDER BY</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">orderDate</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h3><code>$limit</code> — LIMIT</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$limit</span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h3><code>$count</code> — COUNT(*)</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$count</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;nOrders&quot;</span><span class="w"> </span><span class="p">}</span><span class="w">   </span><span class="c1">// → [ { nOrders: 326 } ]</span>
+</code></pre></div>
+
+<p>This is the <strong>stage</strong> named <code>$count</code>. There is also an accumulator <code>{ $sum: 1 }</code> used inside <code>$group</code>. Both exist, both are on the syllabus.</p>
+<h3><code>$unwind</code> — flatten an array</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$orderDetails&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>After this stage, each order document exists once per line item, with <code>orderDetails</code> now pointing to a single element (not an array). If an array is empty or missing, the document is <strong>dropped</strong> by default — add <code>{ preserveNullAndEmptyArrays: true }</code> to emulate a <code>LEFT JOIN</code> effect.</p>
+<h3><code>$group</code> — GROUP BY + aggregates</h3>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$group</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$status&quot;</span><span class="p">,</span><span class="w">                    </span><span class="c1">// grouping key (use null for &quot;overall&quot;)</span>
+<span class="w">    </span><span class="nx">nOrders</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span><span class="w">              </span><span class="c1">// COUNT(*)</span>
+<span class="w">    </span><span class="nx">revenue</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$multiply</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+<span class="w">                                    </span><span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}}</span>
+</code></pre></div>
+
+<p>Common accumulators: <code>$sum</code>, <code>$avg</code>, <code>$min</code>, <code>$max</code>, <code>$first</code>, <code>$last</code>, <code>$push</code> (list of values), <code>$addToSet</code> (distinct list).</p>
+<p>Tip: after <code>$group</code> the output field that held your key is named <code>_id</code>. Use a downstream <code>$project</code> to rename it back (<code>orderNumber: "$_id"</code>, <code>_id: 0</code>).</p>
+<h3><code>$lookup</code> — JOIN</h3>
+<p>Equi-join form:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$lookup</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">from</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customers&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">localField</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">foreignField</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="kr">as</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cust&quot;</span>
+<span class="p">}}</span>
+</code></pre></div>
+
+<p><code>cust</code> is always an <strong>array</strong> of matched docs (even for 1:1 joins). The idiomatic pattern is:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$lookup</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kr">from</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customers&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">localField</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+<span class="w">             </span><span class="nx">foreignField</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">as</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cust&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$cust&quot;</span><span class="w"> </span><span class="p">},</span><span class="w">                </span><span class="c1">// or preserveNullAndEmptyArrays: true for LEFT JOIN</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">$project</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span><span class="w"> </span><span class="nx">orderNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">customerName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$cust.customerName&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h2>2.3 A model pipeline that exercises every required stage</h2>
+<p>"Top 5 customers by total revenue, with their country and number of orders."</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">orders</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$orderDetails&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$group</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$customerNumber&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">revenue</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$multiply</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+<span class="w">                                      </span><span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nx">nOrders</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$addToSet</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$orderNumber&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$project</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">customerNumber</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$_id&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">revenue</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$round</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;$revenue&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nx">nOrders</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$size</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$nOrders&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$lookup</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kr">from</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customers&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">localField</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nx">foreignField</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span><span class="w"> </span><span class="kr">as</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;cust&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$cust&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;cust.address.country&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$exists</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$project</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">customerNumber</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">revenue</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">nOrders</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">customerName</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$cust.customerName&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">country</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$cust.address.country&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">revenue</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$limit</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<p>That single pipeline uses: <code>$unwind</code>, <code>$group</code>, <code>$project</code>, <code>$lookup</code>, <code>$match</code>, <code>$sort</code>, <code>$limit</code>. Add <code>{ $count: "n" }</code> to the tail if the question were instead <em>"how many customers had any revenue?"</em>.</p>
+<hr />
+<h1>Part 3 — The Neo4j Movie dataset</h1>
+<h2>3.1 Schema in one picture (ASCII)</h2>
+<div class="codehilite"><pre><span></span><code>                    (:Person)
+                   /    |    \    \    \    \
+                  /     |     \    \    \    \
+         ACTED_IN  DIRECTED  PRODUCED  WROTE  REVIEWED   FOLLOWS
+                \    |    /    |     /          \          |
+                 \   |   /     |    /            \         v
+                  (:Movie)  (:Movie) (:Movie)  (:Movie)  (:Person)
+</code></pre></div>
+
+<p>Two node labels:</p>
+<ul>
+<li><code>(:Movie  { title, released, tagline })</code></li>
+<li><code>(:Person { name, born })</code></li>
+</ul>
+<p>Six relationship types, <strong>all directed</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Rel</th>
+<th>From → To</th>
+<th>Properties</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ACTED_IN</code></td>
+<td>Person → Movie</td>
+<td><code>roles: [String]</code></td>
+</tr>
+<tr>
+<td><code>DIRECTED</code></td>
+<td>Person → Movie</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>PRODUCED</code></td>
+<td>Person → Movie</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>WROTE</code></td>
+<td>Person → Movie</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>REVIEWED</code></td>
+<td>Person → Movie</td>
+<td><code>summary</code>, <code>rating</code></td>
+</tr>
+<tr>
+<td><code>FOLLOWS</code></td>
+<td>Person → Person</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>Critical gotchas:
+- <code>ACTED_IN.roles</code> is a <strong>list on the relationship</strong>, not on the node. To get roles use <code>MATCH (p)-[r:ACTED_IN]-&gt;(m) RETURN r.roles</code>.
+- Every movie-related rel points <strong>from Person to Movie</strong> (arrow direction matters for <code>&lt;-</code> vs <code>-&gt;</code> in Cypher patterns).
+- <code>FOLLOWS</code> is person-to-person (the only rel that isn't movie-bound).</p>
+<h2>3.2 Cypher cheat sheet</h2>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Syntax</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node pattern</td>
+<td><code>(p:Person)</code> — variable <code>p</code>, label <code>Person</code></td>
+</tr>
+<tr>
+<td>Node + property filter</td>
+<td><code>(p:Person { name: 'Tom Hanks' })</code></td>
+</tr>
+<tr>
+<td>Directed rel</td>
+<td><code>-[:ACTED_IN]-&gt;</code></td>
+</tr>
+<tr>
+<td>Rel variable</td>
+<td><code>-[r:ACTED_IN]-&gt;</code> then <code>r.roles</code></td>
+</tr>
+<tr>
+<td>Any-direction / undirected</td>
+<td><code>-[:FOLLOWS]-</code> (both ways), or <code>-[*]-</code></td>
+</tr>
+<tr>
+<td>Variable-length</td>
+<td><code>-[:FOLLOWS*1..3]-&gt;</code></td>
+</tr>
+<tr>
+<td>Predicate</td>
+<td><code>WHERE m.released &gt;= 2000 AND m.title CONTAINS 'Matrix'</code></td>
+</tr>
+<tr>
+<td>Return</td>
+<td><code>RETURN DISTINCT p.name AS name, count(m) AS n</code></td>
+</tr>
+<tr>
+<td>Sort / page</td>
+<td><code>ORDER BY n DESC  SKIP 10  LIMIT 5</code></td>
+</tr>
+<tr>
+<td>Shortest path</td>
+<td><code>shortestPath((a)-[*]-(b))</code></td>
+</tr>
+<tr>
+<td>List ops</td>
+<td><code>collect(m.title) AS titles</code>, <code>size(titles)</code>, <code>x IN list</code>, <code>[x IN list WHERE ...]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Grouping is <strong>implicit</strong>: any non-aggregated variable in <code>RETURN</code> acts like <code>GROUP BY</code>.</p>
+<h2>3.3 MongoDB ↔ Cypher one-liner map</h2>
+<table>
+<thead>
+<tr>
+<th>MongoDB</th>
+<th>Cypher</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$match</code></td>
+<td><code>WHERE</code> (or inline pattern filter)</td>
+</tr>
+<tr>
+<td><code>$project</code></td>
+<td><code>RETURN ... AS ...</code></td>
+</tr>
+<tr>
+<td><code>$sort</code> / <code>$limit</code></td>
+<td><code>ORDER BY</code> / <code>LIMIT</code></td>
+</tr>
+<tr>
+<td><code>$group</code> + <code>$sum/$avg</code></td>
+<td>implicit grouping + <code>count()/sum()/avg()</code></td>
+</tr>
+<tr>
+<td><code>$unwind</code></td>
+<td><code>UNWIND listProperty AS x</code></td>
+</tr>
+<tr>
+<td><code>$lookup</code></td>
+<td>walk the relationship: <code>-[:ACTED_IN]-&gt;</code></td>
+</tr>
+<tr>
+<td><code>$count</code></td>
+<td><code>RETURN count(*)</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>Part 4 — MongoDB practice problems (HW3 style)</h1>
+<p>Every question below is in the style of M1/M2/M3 in your HW3. Solve first, then verify against the solution.</p>
+<blockquote>
+<p><strong>Setup assumed</strong> in all solutions:</p>
+<p><code>python
+from pymongo import MongoClient
+client = MongoClient(...)
+db = client["classicmodels"]</code></p>
+</blockquote>
+<hr />
+<h3>M-Practice 1 — Filter + projection (M1-style)</h3>
+<p><strong>Prompt.</strong> Produce a list of <code>customers</code> whose <code>country</code> is <code>"USA"</code> <strong>and</strong> <code>creditLimit</code> is at least <code>100000</code>. Your answer should contain only the fields <code>customerNumber</code>, <code>customerName</code>, <code>creditLimit</code>, and <code>address.country</code>.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">filter_</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;address.country&quot;</span><span class="p">:</span> <span class="s2">&quot;USA&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;creditLimit&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$gte&quot;</span><span class="p">:</span> <span class="mi">100000</span> <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">projection</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;customerNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;customerName&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;creditLimit&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;address.country&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;customers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">filter_</span><span class="p">,</span> <span class="n">projection</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> <code>find()</code> takes a filter (<code>WHERE</code>) and a projection (<code>SELECT</code>). Dot-notation <code>address.country</code> reaches inside the embedded sub-document for both the filter and the projection.</p>
+<p><strong>Validation.</strong> Expect a small list (roughly a dozen) — all with <code>country = "USA"</code> and <code>creditLimit &gt;= 100000</code>.</p>
+<hr />
+<h3>M-Practice 2 — Aggregation with match + sort + limit</h3>
+<p><strong>Prompt.</strong> Return the 5 customers with the <strong>highest</strong> <code>creditLimit</code>. Output fields: <code>customerNumber</code>, <code>customerName</code>, <code>creditLimit</code>. Sort descending.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$match&quot;</span><span class="p">:</span>  <span class="p">{</span> <span class="s2">&quot;creditLimit&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$gt&quot;</span><span class="p">:</span> <span class="mi">0</span> <span class="p">}</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span>   <span class="p">{</span> <span class="s2">&quot;creditLimit&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$limit&quot;</span><span class="p">:</span>  <span class="mi">5</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;customerNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;customerName&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;creditLimit&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;customers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Exactly the MQL translation of <code>SELECT ... FROM customers WHERE creditLimit &gt; 0 ORDER BY creditLimit DESC LIMIT 5</code>.</p>
+<hr />
+<h3>M-Practice 3 — Unwind + project (M2-style)</h3>
+<p><strong>Prompt.</strong> Produce one document per <strong>line item</strong> with fields <code>orderNumber</code>, <code>orderDate</code>, <code>productCode</code>, <code>quantityOrdered</code>, <code>priceEach</code>, <code>lineValue</code> (= <code>priceEach * quantityOrdered</code>). Sort by <code>orderNumber</code>, then <code>orderLineNumber</code>.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;orderNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;orderDate&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;productCode&quot;</span><span class="p">:</span>     <span class="s2">&quot;$orderDetails.productCode&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;quantityOrdered&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;priceEach&quot;</span><span class="p">:</span>       <span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;orderLineNumber&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails.orderLineNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lineValue&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;$round&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s2">&quot;$multiply&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+                                 <span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span> <span class="p">]</span> <span class="p">},</span>
+                <span class="mi">2</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;orderNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;orderLineNumber&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;orders&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2996</span>        <span class="c1"># sanity check</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> <code>$unwind</code> flattens the array so each line becomes its own document; <code>$project</code> both keeps top-level order fields and pulls the nested line-item fields up; a computed field is built right inside <code>$project</code>.</p>
+<hr />
+<h3>M-Practice 4 — Group + sum (M3-style)</h3>
+<p><strong>Prompt.</strong> For each <code>status</code>, compute:
+- <code>nOrders</code> — the number of orders with that status,
+- <code>totalRevenue</code> — the sum over all line items in those orders of <code>priceEach * quantityOrdered</code>,
+rounded to 2 decimals. Sort by <code>totalRevenue</code> descending.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;$status&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;orders&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$addToSet&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderNumber&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$sum&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;$multiply&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span> <span class="p">]</span>
+        <span class="p">}}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span>       <span class="s2">&quot;$_id&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;nOrders&quot;</span><span class="p">:</span>      <span class="p">{</span> <span class="s2">&quot;$size&quot;</span><span class="p">:</span> <span class="s2">&quot;$orders&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$round&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$totalRevenue&quot;</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;orders&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Grouping on <code>$status</code> gives the per-status bucket. <code>$addToSet</code> collects distinct <code>orderNumber</code>s so <code>$size</code> gives the true order count (a plain <code>$sum: 1</code> here would count <em>line items</em>, which is wrong). <code>$sum</code> over a <code>$multiply</code> expression gives per-status revenue.</p>
+<hr />
+<h3>M-Practice 5 — Group + $count stage (two ways)</h3>
+<p><strong>Prompt (a).</strong> How many distinct customers have placed at least one order?
+<strong>Prompt (b).</strong> Confirm the number of orders in the <code>orders</code> collection.</p>
+<p><strong>Answer (a).</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;$customerNumber&quot;</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$count&quot;</span><span class="p">:</span> <span class="s2">&quot;nCustomersWithOrders&quot;</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="c1"># → [ { &#39;nCustomersWithOrders&#39;: 98 } ]</span>
+</code></pre></div>
+
+<p><strong>Answer (b).</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span> <span class="p">{</span> <span class="s2">&quot;$count&quot;</span><span class="p">:</span> <span class="s2">&quot;nOrders&quot;</span> <span class="p">}</span> <span class="p">]</span>   <span class="c1"># → [ { &#39;nOrders&#39;: 326 } ]</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> <code>$count</code> is a terminal stage that outputs one document whose single field is named by the argument string. Combined with <code>$group</code>, it counts <strong>buckets</strong>. Used on its own, it counts <strong>documents</strong>.</p>
+<hr />
+<h3>M-Practice 6 — Lookup (equi-join with a collection of documents)</h3>
+<p><strong>Prompt.</strong> For every order, return <code>orderNumber</code>, <code>orderDate</code>, <code>status</code>, and the placing customer's <code>customerName</code> and <code>country</code>. Sort by <code>orderDate</code> descending. Limit to 10.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$lookup&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;customers&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;localField&quot;</span><span class="p">:</span> <span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;foreignField&quot;</span><span class="p">:</span> <span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;as&quot;</span><span class="p">:</span> <span class="s2">&quot;cust&quot;</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$cust&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;orderNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;orderDate&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;customerName&quot;</span><span class="p">:</span> <span class="s2">&quot;$cust.customerName&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;$cust.address.country&quot;</span><span class="p">,</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span>  <span class="p">{</span> <span class="s2">&quot;orderDate&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$limit&quot;</span><span class="p">:</span> <span class="mi">10</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;orders&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> <code>$lookup</code> writes the matched customer documents into the array field <code>cust</code>. <code>$unwind "$cust"</code> collapses the array (safe here because each order has exactly one matching customer). Subsequent <code>$project</code> lifts the needed fields out with dot notation.</p>
+<p><strong>Variation — LEFT JOIN.</strong> To keep orders with no matching customer, use <code>{ $unwind: { path: "$cust", preserveNullAndEmptyArrays: true } }</code>.</p>
+<hr />
+<h3>M-Practice 7 — Group across collections (lookup + unwind + group)</h3>
+<p><strong>Prompt.</strong> Compute <code>totalRevenue</code> by country. Output <code>{ country, totalRevenue }</code>, sorted descending.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;$customerNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rev&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$sum&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$multiply&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+                                          <span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span> <span class="p">]}}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$lookup&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;customers&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;localField&quot;</span><span class="p">:</span> <span class="s2">&quot;_id&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;foreignField&quot;</span><span class="p">:</span> <span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;as&quot;</span><span class="p">:</span> <span class="s2">&quot;cust&quot;</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$cust&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;$cust.address.country&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$sum&quot;</span><span class="p">:</span> <span class="s2">&quot;$rev&quot;</span> <span class="p">}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;country&quot;</span><span class="p">:</span> <span class="s2">&quot;$_id&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$round&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$totalRevenue&quot;</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">}</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;orders&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> First group reduces to one doc per customer with their revenue. The <code>$lookup</code> attaches each customer's country. A second <code>$group</code> re-aggregates by country. Two <code>$group</code>s in one pipeline is a perfectly normal idiom.</p>
+<hr />
+<h3>M-Practice 8 — Customers with no orders (anti-join)</h3>
+<p><strong>Prompt.</strong> List <code>customerNumber</code> and <code>customerName</code> for customers that have <strong>never</strong> placed an order.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$lookup&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;orders&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;localField&quot;</span><span class="p">:</span>   <span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;foreignField&quot;</span><span class="p">:</span> <span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;as&quot;</span><span class="p">:</span> <span class="s2">&quot;theirOrders&quot;</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$match&quot;</span><span class="p">:</span>   <span class="p">{</span> <span class="s2">&quot;theirOrders&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$size&quot;</span><span class="p">:</span> <span class="mi">0</span> <span class="p">}</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;customerNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;customerName&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span>    <span class="p">{</span> <span class="s2">&quot;customerNumber&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;customers&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> <code>$lookup</code> populates <code>theirOrders</code> with an array of all their orders (possibly empty). <code>$match</code> with <code>$size: 0</code> keeps only customers whose array is empty — classic anti-join pattern in MQL.</p>
+<hr />
+<h3>M-Practice 9 — Top-N within groups (pure pipeline, no joins)</h3>
+<p><strong>Prompt.</strong> For each <code>status</code>, find the single order with the largest <code>totalValue</code> (sum over its line items). Return <code>status</code>, <code>orderNumber</code>, <code>totalValue</code>. Sort by <code>totalValue</code> descending.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;$status&quot;</span><span class="p">,</span> <span class="s2">&quot;orderNumber&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderNumber&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;totalValue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$sum&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$multiply&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+                                                 <span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span> <span class="p">]}}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span>  <span class="p">{</span> <span class="s2">&quot;_id.status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;totalValue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span>        <span class="s2">&quot;$_id.status&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;orderNumber&quot;</span><span class="p">:{</span> <span class="s2">&quot;$first&quot;</span><span class="p">:</span> <span class="s2">&quot;$_id.orderNumber&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;totalValue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$first&quot;</span><span class="p">:</span> <span class="s2">&quot;$totalValue&quot;</span> <span class="p">}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;$_id&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;orderNumber&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;totalValue&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$round&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$totalValue&quot;</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">}</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;totalValue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;orders&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> A compound <code>_id</code> <code>{status, orderNumber}</code> gives per-order totals within status. Sorting then re-grouping on <code>status</code> with <code>$first</code> picks the max row per group (this is MQL's standard "argmax per group" idiom).</p>
+<hr />
+<h3>M-Practice 10 — Full kitchen-sink pipeline</h3>
+<p><strong>Prompt.</strong> "Top 3 customers in France by total revenue. Return customer number, customer name, city, total revenue, and the number of distinct products they have ever ordered."</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$group&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;$customerNumber&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rev&quot;</span><span class="p">:</span>      <span class="p">{</span> <span class="s2">&quot;$sum&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$multiply&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$orderDetails.priceEach&quot;</span><span class="p">,</span>
+                                               <span class="s2">&quot;$orderDetails.quantityOrdered&quot;</span> <span class="p">]}},</span>
+        <span class="s2">&quot;products&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$addToSet&quot;</span><span class="p">:</span> <span class="s2">&quot;$orderDetails.productCode&quot;</span> <span class="p">}</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$lookup&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;from&quot;</span><span class="p">:</span> <span class="s2">&quot;customers&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;localField&quot;</span><span class="p">:</span> <span class="s2">&quot;_id&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;foreignField&quot;</span><span class="p">:</span> <span class="s2">&quot;customerNumber&quot;</span><span class="p">,</span>
+                   <span class="s2">&quot;as&quot;</span><span class="p">:</span> <span class="s2">&quot;cust&quot;</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$unwind&quot;</span><span class="p">:</span> <span class="s2">&quot;$cust&quot;</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$match&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;cust.address.country&quot;</span><span class="p">:</span> <span class="s2">&quot;France&quot;</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$project&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;customerNumber&quot;</span><span class="p">:</span> <span class="s2">&quot;$_id&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;customerName&quot;</span><span class="p">:</span>   <span class="s2">&quot;$cust.customerName&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;city&quot;</span><span class="p">:</span>           <span class="s2">&quot;$cust.address.city&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span>   <span class="p">{</span> <span class="s2">&quot;$round&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;$rev&quot;</span><span class="p">,</span> <span class="mi">2</span> <span class="p">]</span> <span class="p">},</span>
+        <span class="s2">&quot;nDistinctProducts&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;$size&quot;</span><span class="p">:</span> <span class="s2">&quot;$products&quot;</span> <span class="p">},</span>
+    <span class="p">}},</span>
+    <span class="p">{</span> <span class="s2">&quot;$sort&quot;</span><span class="p">:</span>  <span class="p">{</span> <span class="s2">&quot;totalRevenue&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="p">}</span> <span class="p">},</span>
+    <span class="p">{</span> <span class="s2">&quot;$limit&quot;</span><span class="p">:</span> <span class="mi">3</span> <span class="p">},</span>
+<span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="s2">&quot;orders&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">pipeline</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Uses every required stage:</strong> <code>$unwind</code>, <code>$group</code>, <code>$lookup</code>, <code>$match</code>, <code>$project</code>, <code>$sort</code>, <code>$limit</code>. If this came up in the exam, changing it to "how many French customers have ever ordered a 'Classic Cars' product?" is just swapping a <code>$match</code> condition and replacing the tail with <code>{ $count: "n" }</code>.</p>
+<hr />
+<h1>Part 5 — Neo4j practice problems (HW3 style)</h1>
+<p>All queries assume the sample Movie graph loaded by the <code>:play movies</code> tutorial.</p>
+<hr />
+<h3>N-Practice 1 — Single pattern traversal (N1-style)</h3>
+<p><strong>Prompt.</strong> Return every actor's name and the title of each movie they acted in. Sort by actor then movie.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">actor</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">movie</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">actor</span><span class="p">,</span><span class="w"> </span><span class="n">movie</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> This is the acting equivalent of N1. Mirror the N1 pattern, just swap <code>DIRECTED</code> → <code>ACTED_IN</code>.</p>
+<hr />
+<h3>N-Practice 2 — Triangle pattern (N2-style)</h3>
+<p><strong>Prompt.</strong> Compute <code>director_name</code>, <code>movie_title</code>, <code>writer_name</code> for every movie that has both a director and a writer. Sort by <code>director_name</code>, then <code>movie_title</code>.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">d</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">DIRECTED</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span><span class="o">&lt;-[</span><span class="p">:</span><span class="n">WROTE</span><span class="o">]-</span><span class="p">(</span><span class="n">w</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">d</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">director_name</span><span class="p">,</span>
+<span class="w">       </span><span class="n">m</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">movie_title</span><span class="p">,</span>
+<span class="w">       </span><span class="n">w</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">writer_name</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">director_name</span><span class="p">,</span><span class="w"> </span><span class="n">movie_title</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Two relationships meeting at the same <code>(m:Movie)</code> node — exactly the director/actor pattern from N2 but with <code>WROTE</code> instead of <code>ACTED_IN</code>.</p>
+<hr />
+<h3>N-Practice 3 — Co-actor pattern (N3-style)</h3>
+<p><strong>Prompt.</strong> Return the distinct names of all people who acted in a movie with <strong>Keanu Reeves</strong>, ordered by movie title.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">:</span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Keanu Reeves&#39;</span><span class="p">})</span><span class="o">-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-</span><span class="p">(</span><span class="n">co</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">co</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="p">&lt;&gt;</span><span class="w"> </span><span class="s">&#39;Keanu Reeves&#39;</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">movie_title</span><span class="p">,</span><span class="w"> </span><span class="n">co</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">coactor</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">movie_title</span><span class="p">,</span><span class="w"> </span><span class="n">coactor</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Same "friends-of-friends" pattern as N3; the <code>WHERE co.name &lt;&gt; ...</code> filters out the starting node, which otherwise trivially co-acts with itself.</p>
+<hr />
+<h3>N-Practice 4 — Aggregation (count per group)</h3>
+<p><strong>Prompt.</strong> For each actor, return their name and the number of movies they have acted in. Only return actors with at least 4 movies. Order by count descending, then by name.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="k">WITH</span><span class="w"> </span><span class="n">p</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">nFilms</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">nFilms</span><span class="w"> </span><span class="p">&gt;=</span><span class="w"> </span><span class="m">4</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">actor</span><span class="p">,</span><span class="w"> </span><span class="n">nFilms</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">nFilms</span><span class="w"> </span><span class="k">DESC</span><span class="p">,</span><span class="w"> </span><span class="n">actor</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Cypher has implicit grouping: the non-aggregated <code>p</code> defines the group. <code>WITH</code> is Cypher's way to chain subsequent clauses onto the aggregation result — think of it as the subquery break. Compare to MQL's <code>$group</code> + <code>$match</code>.</p>
+<hr />
+<h3>N-Practice 5 — Filter by relationship property</h3>
+<p><strong>Prompt.</strong> List each actor who played the role "Neo", and the movie where they played it.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="n">r</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="s">&#39;Neo&#39;</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">roles</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">actor</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">movie</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Binding the relationship to variable <code>r</code> lets you access the <code>roles</code> list that lives on the edge. <code>IN</code> is Cypher's list-membership check.</p>
+<hr />
+<h3>N-Practice 6 — Unwind for per-role rows</h3>
+<p><strong>Prompt.</strong> For each <code>ACTED_IN</code> relationship, produce one row per role. Output: <code>actor</code>, <code>movie</code>, <code>role</code>.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="n">r</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="k">UNWIND</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">roles</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">role</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">actor</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">movie</span><span class="p">,</span><span class="w"> </span><span class="n">role</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">actor</span><span class="p">,</span><span class="w"> </span><span class="n">movie</span><span class="p">,</span><span class="w"> </span><span class="n">role</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> <code>UNWIND</code> is Cypher's <code>$unwind</code> — it flattens a list property into one row per element.</p>
+<hr />
+<h3>N-Practice 7 — Top-N with limit</h3>
+<p><strong>Prompt.</strong> Return the 5 directors who have directed the most movies, with counts, ordered high to low.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">d</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">DIRECTED</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">d</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">director</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">nMovies</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">nMovies</span><span class="w"> </span><span class="k">DESC</span><span class="p">,</span><span class="w"> </span><span class="n">director</span>
+<span class="k">LIMIT</span><span class="w"> </span><span class="m">5</span><span class="p">;</span>
+</code></pre></div>
+
+<hr />
+<h3>N-Practice 8 — Subquery / intersection</h3>
+<p><strong>Prompt.</strong> List people who both <strong>acted in</strong> and <strong>directed</strong> the same movie.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span><span class="o">-[</span><span class="p">:</span><span class="n">DIRECTED</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span><span class="o">&lt;-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">title</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">movie</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">movie</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Using the same variable <code>p</code> on both ends of the pattern forces the director and actor nodes to be the same person.</p>
+<hr />
+<h3>N-Practice 9 — Variable-length path (Bacon number)</h3>
+<p><strong>Prompt.</strong> Find the shortest path (of any relationships) between Tom Hanks and Kevin Bacon. Return the path.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="n">shortestPath</span><span class="p">(</span>
+<span class="w">  </span><span class="p">(</span><span class="n">t</span><span class="p">:</span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Tom Hanks&#39;</span><span class="p">})</span><span class="o">-[</span><span class="p">*</span><span class="o">]-</span><span class="p">(</span><span class="n">k</span><span class="p">:</span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Kevin Bacon&#39;</span><span class="p">})</span>
+<span class="p">)</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">p</span><span class="p">;</span>
+</code></pre></div>
+
+<p>If the exam instead asks for the <strong>length</strong>: <code>RETURN length(p) AS baconNumber</code>.</p>
+<hr />
+<h3>N-Practice 10 — Multi-hop traversal with aggregation</h3>
+<p><strong>Prompt.</strong> For every actor who has acted with Tom Hanks, list their name and the number of movies they share with him. Return top 10.</p>
+<p><strong>Answer.</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="k">MATCH</span><span class="w"> </span><span class="p">(</span><span class="n">tom</span><span class="p">:</span><span class="n">Person</span><span class="w"> </span><span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;Tom Hanks&#39;</span><span class="p">})</span><span class="o">-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-&gt;</span><span class="p">(</span><span class="n">m</span><span class="p">:</span><span class="n">Movie</span><span class="p">)</span>
+<span class="w">      </span><span class="o">&lt;-[</span><span class="p">:</span><span class="n">ACTED_IN</span><span class="o">]-</span><span class="p">(</span><span class="n">co</span><span class="p">:</span><span class="n">Person</span><span class="p">)</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">co</span><span class="w"> </span><span class="p">&lt;&gt;</span><span class="w"> </span><span class="n">tom</span>
+<span class="k">RETURN</span><span class="w"> </span><span class="n">co</span><span class="p">.</span><span class="n">name</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">coactor</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="p">(</span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">sharedMovies</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">sharedMovies</span><span class="w"> </span><span class="k">DESC</span><span class="p">,</span><span class="w"> </span><span class="n">coactor</span>
+<span class="k">LIMIT</span><span class="w"> </span><span class="m">10</span><span class="p">;</span>
+</code></pre></div>
+
+<p><strong>Why it works.</strong> Same co-actor pattern as N3 plus grouping via implicit <code>GROUP BY co</code> and <code>count(DISTINCT m)</code> to avoid double-counting if the same co-actor appeared in the same movie twice.</p>
+<hr />
+<h1>Part 6 — Common pitfalls &amp; exam tips</h1>
+<ol>
+<li><strong>MQL aggregation order matters for performance and correctness.</strong> Place <code>$match</code> as early as possible. Don't <code>$unwind</code> before <code>$match</code> if the match can be done on the parent document — you'll create extra work.</li>
+<li><strong>After <code>$lookup</code>, always decide: <code>$unwind</code> (inner-join) or <code>preserveNullAndEmptyArrays</code> (left-join)?</strong> Forgetting this is the #1 cause of "why is my result an array?" bugs.</li>
+<li><strong><code>$group._id</code> vs <code>$project</code>.</strong> After a <code>$group</code>, your key is in <code>_id</code>. You almost always want a <code>$project</code> afterwards to rename it and hide <code>_id</code>.</li>
+<li><strong><code>$addToSet</code> vs <code>$push</code>.</strong> Use <code>$addToSet</code> when counting distinct values; <code>$push</code> is the SQL analog of <code>ARRAY_AGG</code> (keeps dupes).</li>
+<li><strong><code>$count</code> the stage ≠ <code>$count</code> in a group.</strong> The <strong>stage</strong> is a terminal counter that outputs <code>{field: n}</code>. Inside <code>$group</code>, you count with <code>{ $sum: 1 }</code>.</li>
+<li><strong>Strings vs numbers in <code>classicmodels</code>.</strong> <code>orderDate</code> is a <strong>string</strong>. Sort works because of the ISO format; arithmetic requires <code>$toDate</code>.</li>
+<li><strong>Cypher direction is mandatory</strong>. <code>-[:DIRECTED]-&gt;</code> and <code>&lt;-[:DIRECTED]-</code> give different results. Undirected is <code>-[:DIRECTED]-</code>.</li>
+<li><strong>Grouping in Cypher is implicit.</strong> Every non-aggregated variable in <code>RETURN</code> is a grouping key. Want to aggregate on <code>actor</code> alone? Only mention <code>actor</code> (and aggregates) in the <code>RETURN</code>.</li>
+<li><strong>Relationship properties live on the edge.</strong> To filter by <code>ACTED_IN.roles</code>, give the relationship a name: <code>-[r:ACTED_IN]-&gt;</code> then <code>WHERE 'Neo' IN r.roles</code>.</li>
+<li><strong>The "I do provide a summary" clause.</strong> On the exam the professor will paste a schema blurb. Don't ignore it — it's the only source of truth for what collections / labels exist in the version you're being tested on.</li>
+</ol>
+<hr />
+<h2>Quick last-day review checklist</h2>
+<ul>
+<li>[ ] I can write in MQL: any HW3-style question using only <code>$match, $project, $sort, $limit, $unwind, $group, $lookup, $count</code>.</li>
+<li>[ ] I can compute total order value via <code>$unwind + $group + $sum + $multiply</code>.</li>
+<li>[ ] I can do an <strong>anti-join</strong> ("customers without orders") using <code>$lookup</code> + <code>$match: {arr: {$size: 0}}</code>.</li>
+<li>[ ] I know what the default <code>$unwind</code> does to empty arrays and how to change it.</li>
+<li>[ ] I can write <code>MATCH (a)-[:REL]-&gt;(b)&lt;-[:REL]-(c)</code> triangles and understand co-actor style queries.</li>
+<li>[ ] I can access relationship properties: <code>-[r:ACTED_IN]-&gt; ... r.roles</code>.</li>
+<li>[ ] I can count movies per person with implicit grouping.</li>
+<li>[ ] I know how to pair <code>WITH</code> with a filter to emulate <code>HAVING</code>.</li>
+</ul>
+<p>Good luck!</p>
+</body>
+</html>

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>group</title>
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #222;
+  max-width: 8.5in;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+h1, h2, h3, h4 { color: #00684A; page-break-after: avoid; }
+h1 { border-bottom: 2px solid #00684A; padding-bottom: 0.2em; }
+h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.15em; margin-top: 1.5em; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f4f4f4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  background: #f4f4f4;
+  padding: 0.75em;
+  border-radius: 4px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #eef5f2; }
+blockquote {
+  border-left: 4px solid #00684A;
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: #555;
+  background: #f9f9f9;
+}
+.codehilite { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>$group (aggregation stage)</h1>
+<h2>Definition</h2>
+<p><code>$group</code>
+The $group stage combines multiple documents with the same field, fields, or expression into a single document according to a group key. The result is one document per unique group key.</p>
+<p>A group key is often a field, or group of fields. The group key can also be the result of an expression. Use the <code>_id</code> field in the <code>$group</code> pipeline stage to set the group key. See below for usage examples.</p>
+<p>In the <code>$group</code> stage output, the <code>_id</code> field is set to the group key for that document.</p>
+<p>The output documents can also contain additional fields that are set using accumulator expressions.</p>
+<p><code>$group</code> does <em>not</em> order its output documents.</p>
+<h2>Compatibility</h2>
+<p><code>$group</code>You can use <code>$group</code> for deployments hosted in the following environments:</p>
+<ul>
+<li>
+<p>MongoDB Atlas: The fully managed service for MongoDB deployments in the cloud</p>
+</li>
+<li>
+<p>MongoDB Enterprise: The subscription-based, self-managed version of MongoDB</p>
+</li>
+<li>
+<p>MongoDB Community: The source-available, free-to-use, and self-managed version of MongoDB</p>
+</li>
+</ul>
+<h2>Syntax</h2>
+<p>The <code>$group</code> stage has the following prototype form:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w"> </span><span class="nx">$group</span><span class="o">:</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">expression</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="c1">// Group key</span>
+<span class="w">     </span><span class="o">&lt;</span><span class="nx">field1</span><span class="o">&gt;:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">accumulator1</span><span class="o">&gt;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">expression1</span><span class="o">&gt;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">     </span><span class="p">...</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<table>
+<tr>
+<th id="Field">
+Field
+
+</th>
+<th id="Description">
+Description
+
+</th>
+</tr>
+<tr>
+<td headers="Field">
+`_id`
+
+</td>
+<td headers="Description">
+*Required.* The `_id` expression specifies the group key. If you specify an `_id` value of null, or any other constant value, the `$group` stage returns a single document that aggregates values across all of the input documents. See the Group by Null example.
+
+</td>
+</tr>
+<tr>
+<td headers="Field">
+`field`
+
+</td>
+<td headers="Description">
+*Optional.* Computed using the accumulator operators.
+
+</td>
+</tr>
+</table>
+<p>The <code>_id</code> and the accumulator operators can accept any valid <code>expression</code>. For more information on expressions, see Expressions.</p>
+<h2>Considerations</h2>
+<h3>Performance</h3>
+<p><code>$group``$group</code> is a blocking stage, which causes the pipeline to wait for all input data to be retrieved for the blocking stage before processing the data. A blocking stage may reduce performance because it reduces parallel processing for a pipeline with multiple stages. A blocking stage may also use substantial amounts of memory for large data sets.</p>
+<h3>Accumulator Operator</h3>
+<p>The <code>&lt;accumulator&gt;</code> operator must be one of the following accumulator operators:</p>
+<table>
+<tr>
+<th id="Name">
+Name
+
+</th>
+<th id="Description">
+Description
+
+</th>
+</tr>
+<tr>
+<td headers="Name">
+`$accumulator`
+
+</td>
+<td headers="Description">
+Returns the result of a user-defined accumulator function.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$addToSet`
+
+</td>
+<td headers="Description">
+Returns an array of *unique* expression values for each group. Order of the array elements is undefined.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$avg`
+
+</td>
+<td headers="Description">
+Returns an average of numerical values. Ignores non-numeric values.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$bottom`
+
+</td>
+<td headers="Description">
+Returns the bottom element within a group according to the specified sort order.
+
+Available in the `$group` and `$setWindowFields` stages.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$bottomN`
+
+</td>
+<td headers="Description">
+Returns an aggregation of the bottom `n` fields within a group, according to the specified sort order.
+
+Available in the `$group` and `$setWindowFields` stages.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$concatArrays`
+
+</td>
+<td headers="Description">
+Returns a single array that combines the elements of two or more arrays.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$count`
+
+</td>
+<td headers="Description">
+Returns the number of documents in a group.
+
+Distinct from the `$count` pipeline stage.
+
+Available in the `$group` and `$setWindowFields` stages.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$first`
+
+</td>
+<td headers="Description">
+Returns the result of an expression for the first document in a group.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$firstN`
+
+</td>
+<td headers="Description">
+Returns an aggregation of the first `n` elements within a group. Only meaningful when documents are in a defined order. Distinct from the `$firstN` array operator.
+
+Available in the `$group`, expression and `$setWindowFields` stages.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$last`
+
+</td>
+<td headers="Description">
+Returns the result of an expression for the last document in a group.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$lastN`
+
+</td>
+<td headers="Description">
+Returns an aggregation of the last `n` elements within a group. Only meaningful when documents are in a defined order. Distinct from the `$lastN` array operator.
+
+Available in the `$group`, expression and `$setWindowFields` stages.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$max`
+
+</td>
+<td headers="Description">
+Returns the highest expression value for each group.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$maxN`
+
+</td>
+<td headers="Description">
+Returns an aggregation of the `n` maximum valued elements in a group. Distinct from the `$maxN` array operator.
+
+Available in `$group`, `$setWindowFields` and as an expression.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$median`
+
+</td>
+<td headers="Description">
+Returns an approximation of the median, the 50th percentile, as a scalar value.
+
+This operator is available as an accumulator in these stages:
+
+- `$group`
+
+- `$setWindowFields`
+
+It is also available as an aggregation expression.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$mergeObjects`
+
+</td>
+<td headers="Description">
+Returns a document created by combining the input documents for each group.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$min`
+
+</td>
+<td headers="Description">
+Returns the lowest expression value for each group.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$minN`
+
+</td>
+<td headers="Description">
+Returns an aggregation of the `n` minimum valued elements in a group. Distinct from the `$minN` array operator.
+
+Available in `$group`, `$setWindowFields` and as an expression.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$percentile`
+
+</td>
+<td headers="Description">
+Returns an array of scalar values that correspond to specified percentile values.
+
+This operator is available as an accumulator in these stages:
+
+- `$group`
+
+- `$setWindowFields`
+
+It is also available as an aggregation expression.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$push`
+
+</td>
+<td headers="Description">
+Returns an array of expression values for documents in each group.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$setUnion`
+
+</td>
+<td headers="Description">
+Takes two or more arrays and returns an array containing the elements that appear in any input array.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$stdDevPop`
+
+</td>
+<td headers="Description">
+Returns the population standard deviation of the input values.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$stdDevSamp`
+
+</td>
+<td headers="Description">
+Returns the sample standard deviation of the input values.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$sum`
+
+</td>
+<td headers="Description">
+Returns a sum of numerical values. Ignores non-numeric values.
+
+Available in the `$setWindowFields` stage.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$top`
+
+</td>
+<td headers="Description">
+Returns the top element within a group according to the specified sort order.
+
+Available in the `$group` and `$setWindowFields` stages.
+
+</td>
+</tr>
+<tr>
+<td headers="Name">
+`$topN`
+
+</td>
+<td headers="Description">
+Returns an aggregation of the top `n` fields within a group, according to the specified sort order.
+
+Available in the `$group` and `$setWindowFields` stages.
+
+</td>
+</tr>
+</table>
+
+<h3><code>$group</code> and Memory Restrictions</h3>
+<p>If the <code>$group</code> stage exceeds 100 megabytes of RAM, MongoDB writes data to temporary files. However, if the allowDiskUse option is set to <code>false</code>, <code>$group</code> returns an error. For more information, refer to Aggregation Pipeline Limits.</p>
+<h3><code>$group</code> Performance Optimizations</h3>
+<p>This section describes optimizations to improve the performance of <code>$group</code>. There are optimizations that you can make manually and optimizations MongoDB makes internally.</p>
+<h4>Optimization to Return the First or Last Document of Each Group</h4>
+<p>If a pipeline <code>sorts</code> and <code>groups</code> by the same field and the <code>$group</code> stage only uses the <code>$first</code> or <code>$last</code> accumulator operator, consider adding an index on the grouped field which matches the sort order. In some cases, the <code>$group</code> stage can use the index to quickly find the first or last document of each group.</p>
+<p>If a collection named <code>foo</code> contains an index <code>{ x: 1, y: 1 }</code>, the following pipeline can use that index to find the first document of each group:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">foo</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$sort</span><span class="o">:</span><span class="p">{</span><span class="w"> </span><span class="nx">x</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">y</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$group</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">x</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$x&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nx">y</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$first</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$y&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<h4>Slot-Based Query Execution Engine</h4>
+<p>Starting in version 5.2, MongoDB uses the slot-based execution query engine to execute <code>$group</code> stages if either:</p>
+<ul>
+<li>
+<p><code>$group</code> is the first stage in the pipeline.</p>
+</li>
+<li>
+<p>All preceding stages in the pipeline can also be executed by the slot-based execution engine.</p>
+</li>
+</ul>
+<p>For more information, see <code>$group</code> Optimization.</p>
+<h2>Examples</h2>
+<p><Tabs></p>
+<p><Tab name="MongoDB Shell"></p>
+<h3>Group and Count Documents By Field</h3>
+<p>In <code>mongosh</code>, create a sample collection named <code>sales</code> with the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-03-01T08:00:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;jkl&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;20&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-03-01T09:00:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xyz&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="w"> </span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-03-15T09:00:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xyz&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w">  </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;20&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-04-04T11:21:39.736Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-04-04T21:23:13.331Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">6</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;7.5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2015-06-04T05:08:13Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;7.5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2015-09-10T08:43:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2016-02-06T20:20:13Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<p>The following aggregation operation uses the <code>$group</code> stage to group documents in the <code>sales</code> collection by the <code>price</code> field. One group contains the items with a price greater than or equal to 10. The second group contains the number of items with a price less than 10. The pipeline then counts the number of documents in each group.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w">  </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">$group</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">$cond</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">              </span><span class="k">if</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gte</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$price&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">              </span><span class="nx">then</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Price &gt;= 10&quot;</span><span class="p">,</span>
+<span class="w">              </span><span class="k">else</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Price &lt; 10&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">          </span><span class="p">},</span>
+<span class="w">          </span><span class="nx">count</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span><span class="w">  </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The operation returns the following result:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Price &gt;= 10&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">count</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Price &lt; 10&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">count</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>This aggregation operation is equivalent to the following SQL statement:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">SELECT</span>
+<span class="w">   </span><span class="k">CASE</span>
+<span class="w">      </span><span class="k">WHEN</span><span class="w"> </span><span class="n">price</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="k">THEN</span><span class="w"> </span><span class="s1">&#39;Price &gt;= 10&#39;</span>
+<span class="w">      </span><span class="k">ELSE</span><span class="w"> </span><span class="s1">&#39;Price &lt; 10&#39;</span>
+<span class="w">   </span><span class="k">END</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">price_group</span><span class="p">,</span>
+<span class="w">   </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="k">count</span>
+<span class="k">FROM</span>
+<span class="w">  </span><span class="n">sales</span>
+<span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span>
+<span class="w">  </span><span class="n">price_group</span><span class="p">;</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p><code>$count</code></p>
+</li>
+<li>
+<p><code>$count (aggregation accumulator)</code></p>
+</li>
+</ul>
+<h3>Retrieve Distinct Values</h3>
+<p>The following aggregation operation uses the <code>$group</code> stage to retrieve the distinct item values from the <code>sales</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$item&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The operation returns the following result:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;jkl&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xyz&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>For example, <code>$group</code> operations of the following form can result in a <code>DISTINCT_SCAN</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$&lt;field&gt;&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>For more information on behavior for retrieving distinct values, see the distinct command behavior.</p>
+<p>To see whether your operation results in a <code>DISTINCT_SCAN</code>, check your operation's explain results.</p>
+<h3>Group by Item Having</h3>
+<p>The following aggregation operation groups documents by the <code>item</code> field, calculating the total sale amount per item and returning only the items with total sale amount greater than or equal to 100:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span>
+<span class="w">  </span><span class="p">[</span>
+<span class="w">    </span><span class="c1">// First Stage</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">          </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$item&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nx">totalSaleAmount</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$multiply</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$price&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;$quantity&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">     </span><span class="p">},</span>
+<span class="w">     </span><span class="c1">// Second Stage</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">       </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gte</span><span class="o">:</span><span class="w"> </span><span class="mf">100</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">     </span><span class="p">}</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The <code>$group</code> stage groups the documents by <code>item</code> to retrieve the distinct item values. This stage returns the <code>totalSaleAmount</code> for each item.</p>
+<p>The <code>$match</code> stage filters the resulting documents to only return items with a <code>totalSaleAmount</code> greater than or equal to 100.</p>
+<p>The operation returns the following result:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;170&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xyz&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;150&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;112.5&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>This aggregation operation is equivalent to the following SQL statement:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="n">item</span><span class="p">,</span>
+<span class="w">   </span><span class="k">Sum</span><span class="p">((</span><span class="w"> </span><span class="n">price</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">quantity</span><span class="w"> </span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">totalSaleAmount</span>
+<span class="k">FROM</span><span class="w">   </span><span class="n">sales</span>
+<span class="k">GROUP</span><span class="w">  </span><span class="k">BY</span><span class="w"> </span><span class="n">item</span>
+<span class="k">HAVING</span><span class="w"> </span><span class="n">totalSaleAmount</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">100</span>
+</code></pre></div>
+
+<p><code>$match</code></p>
+<h3>Calculate Count, Sum, and Average</h3>
+<p>In <code>mongosh</code>, create a sample collection named <code>sales</code> with the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-03-01T08:00:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;jkl&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;20&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-03-01T09:00:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xyz&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="w"> </span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-03-15T09:00:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;xyz&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w">  </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;20&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-04-04T11:21:39.736Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-04-04T21:23:13.331Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">6</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;7.5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2015-06-04T05:08:13Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;def&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;7.5&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2015-09-10T08:43:00Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;item&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;abc&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;quantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2016-02-06T20:20:13Z&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<h4>Group by Day of the Year</h4>
+<p>The following pipeline calculates the total sales amount, average sales quantity, and sale count for each day in the year 2014:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">  </span><span class="c1">// First Stage</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$match</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;date&quot;</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gte</span><span class="o">:</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2014-01-01&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">$lt</span><span class="o">:</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ISODate</span><span class="p">(</span><span class="s2">&quot;2015-01-01&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="c1">// Second Stage</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">       </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$dateToString</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">format</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;%Y-%m-%d&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">date</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$date&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="nx">totalSaleAmount</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$multiply</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$price&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;$quantity&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="nx">averageQuantity</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$avg</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$quantity&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="nx">count</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="c1">// Third Stage</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$sort</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">totalSaleAmount</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w"> </span><span class="p">])</span>
+</code></pre></div>
+
+<p>The <code>$match</code> stage filters the documents to only pass documents from the year 2014 to the next stage.</p>
+<p>The <code>$group</code> stage groups the documents by date and calculates the total sale amount, average quantity, and total count of the documents in each group.</p>
+<p>The <code>$sort</code> stage sorts the results by the total sale amount for each group in descending order.</p>
+<p>The operation returns the following results:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">   </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2014-04-04&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;200&quot;</span><span class="p">),</span>
+<span class="w">   </span><span class="s2">&quot;averageQuantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">15</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;count&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span>
+<span class="p">}</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2014-03-15&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;50&quot;</span><span class="p">),</span>
+<span class="w">   </span><span class="s2">&quot;averageQuantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;count&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span>
+<span class="p">}</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2014-03-01&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;40&quot;</span><span class="p">),</span>
+<span class="w">   </span><span class="s2">&quot;averageQuantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1.5</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;count&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This aggregation operation is equivalent to the following SQL statement:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="nb">date</span><span class="p">,</span>
+<span class="w">       </span><span class="k">Sum</span><span class="p">((</span><span class="w"> </span><span class="n">price</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">quantity</span><span class="w"> </span><span class="p">))</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">totalSaleAmount</span><span class="p">,</span>
+<span class="w">       </span><span class="k">Avg</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="w">             </span><span class="k">AS</span><span class="w"> </span><span class="n">averageQuantity</span><span class="p">,</span>
+<span class="w">       </span><span class="k">Count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w">                  </span><span class="k">AS</span><span class="w"> </span><span class="k">Count</span>
+<span class="k">FROM</span><span class="w">   </span><span class="n">sales</span>
+<span class="k">WHERE</span><span class="w">  </span><span class="nb">date</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="s1">&#39;01/01/2014&#39;</span><span class="w"> </span><span class="k">AND</span><span class="w"> </span><span class="nb">date</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="s1">&#39;01/01/2015&#39;</span>
+<span class="k">GROUP</span><span class="w">  </span><span class="k">BY</span><span class="w"> </span><span class="nb">date</span>
+<span class="k">ORDER</span><span class="w">  </span><span class="k">BY</span><span class="w"> </span><span class="n">totalSaleAmount</span><span class="w"> </span><span class="k">DESC</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p><code>$match</code></p>
+</li>
+<li>
+<p><code>$sort</code></p>
+</li>
+<li>
+<p><code>db.collection.countDocuments()</code> which wraps the <code>$group</code> aggregation stage with a <code>$sum</code> expression.</p>
+</li>
+</ul>
+<h4>Group by <code>null</code></h4>
+<p>The following aggregation operation specifies a group <code>_id</code> of <code>null</code>, calculating the total sale amount, average quantity, and count of <em>all</em> documents in the collection.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">       </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">       </span><span class="nx">totalSaleAmount</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$multiply</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$price&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;$quantity&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="nx">averageQuantity</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$avg</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$quantity&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="nx">count</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w"> </span><span class="p">])</span>
+</code></pre></div>
+
+<p>The operation returns the following result:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;totalSaleAmount&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;452.5&quot;</span><span class="p">),</span>
+<span class="w">  </span><span class="s2">&quot;averageQuantity&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7.875</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;count&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This aggregation operation is equivalent to the following SQL statement:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">SELECT</span><span class="w"> </span><span class="k">Sum</span><span class="p">(</span><span class="n">price</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">quantity</span><span class="p">)</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="n">totalSaleAmount</span><span class="p">,</span>
+<span class="w">       </span><span class="k">Avg</span><span class="p">(</span><span class="n">quantity</span><span class="p">)</span><span class="w">         </span><span class="k">AS</span><span class="w"> </span><span class="n">averageQuantity</span><span class="p">,</span>
+<span class="w">       </span><span class="k">Count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w">              </span><span class="k">AS</span><span class="w"> </span><span class="k">Count</span>
+<span class="k">FROM</span><span class="w">   </span><span class="n">sales</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p><code>$count</code></p>
+</li>
+<li>
+<p><code>db.collection.countDocuments()</code> which wraps the <code>$group</code> aggregation stage with a <code>$sum</code> expression.</p>
+</li>
+</ul>
+<h3>Pivot Data</h3>
+<p>In <code>mongosh</code>, create a sample collection named <code>books</code> with the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">books</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8751</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;The Banquet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8752</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Divine Comedy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8645</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Eclogues&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7000</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;The Odyssey&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7020</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Iliad&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<h4>Group <code>title</code> by <code>author</code></h4>
+<p>The following aggregation operation pivots the data in the <code>books</code> collection to have titles grouped by authors.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">books</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$author&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">books</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$push</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$title&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w"> </span><span class="p">])</span>
+</code></pre></div>
+
+<p>The operation returns the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;books&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;The Odyssey&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Iliad&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;books&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;The Banquet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Divine Comedy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Eclogues&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h4>Group Documents by <code>author</code></h4>
+<p>The following aggregation operation groups documents by <code>author</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">books</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">   </span><span class="c1">// First Stage</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">$group</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$author&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">books</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$push</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$$ROOT&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="c1">// Second Stage</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">$addFields</span><span class="o">:</span>
+<span class="w">       </span><span class="p">{</span>
+<span class="w">         </span><span class="nx">totalCopies</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$books.copies&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">       </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w"> </span><span class="p">])</span>
+</code></pre></div>
+
+<p><code>$group</code> uses the <code>$$ROOT</code> system variable to group the entire documents by authors. This stage passes the following documents to the next stage:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;books&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">    </span><span class="p">[</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7000</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;The Odyssey&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7020</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Iliad&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w"> </span><span class="p">},</span>
+<span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="s2">&quot;books&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">     </span><span class="p">[</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8751</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;The Banquet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8752</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Divine Comedy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8645</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Eclogues&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">}</span>
+<span class="w">     </span><span class="p">]</span>
+<span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p><code>$addFields</code> adds a field to the output containing the total copies of books for each author.</p>
+<p>The resulting documents must not exceed the BSON Document Size limit of 16 mebibytes.</p>
+<p>The operation returns the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;books&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">     </span><span class="p">[</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7000</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;The Odyssey&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">7020</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Iliad&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Homer&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">}</span>
+<span class="w">     </span><span class="p">],</span>
+<span class="w">   </span><span class="s2">&quot;totalCopies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">20</span>
+<span class="p">}</span>
+
+<span class="p">{</span>
+<span class="w">  </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;books&quot;</span><span class="w"> </span><span class="o">:</span>
+<span class="w">     </span><span class="p">[</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8751</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;The Banquet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8752</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Divine Comedy&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">8645</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;title&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Eclogues&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;author&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Dante&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;copies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="w"> </span><span class="p">}</span>
+<span class="w">     </span><span class="p">],</span>
+<span class="w">   </span><span class="s2">&quot;totalCopies&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">5</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="C#"></p>
+<p>The C# examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB .NET/C# Driver documentation.</p>
+<p>The following <code>Movie</code> class models the documents in the <code>sample_mflix.movies</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Movie</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ObjectId</span><span class="w"> </span><span class="n">Id</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Runtime</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Title</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Rated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Genres</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Plot</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ImdbData</span><span class="w"> </span><span class="n">Imdb</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Year</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Index</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w"> </span><span class="n">Comments</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="na">[BsonElement(&quot;lastupdated&quot;)]</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">DateTime</span><span class="w"> </span><span class="n">LastUpdated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The C# classes on this page use Pascal case for their property names, but the field names in the MongoDB collection use camel case. To account for this difference, you can use the following code to register a <code>ConventionPack</code> when your application starts:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConventionPack</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CamelCaseElementNameConvention</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="n">ConventionRegistry</span><span class="p">.</span><span class="n">Register</span><span class="p">(</span><span class="s">&quot;CamelCase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">true</span><span class="p">);</span>
+</code></pre></div>
+
+<p><code>$group</code></p>
+<p>Group()</p>
+<p>groups documents by the value of their <code>Rated</code> field. Each group's rating is shown in a field named <code>Rating</code> in each output document. Each output document also contains fields named <code>TotalRuntime</code>, <code>MedianRuntime</code>, and <code>NinetiethPercentileRuntime</code>, which store the total, median, and 90th percentile runtime values for movies in each group.</p>
+<p>To use the MongoDB .NET/C# driver to add a <code>$group</code> stage to an aggregation pipeline, call the Group() method on a <code>PipelineDefinition</code> object.</p>
+<p>The following example creates a pipeline stage that groups documents by the value of their <code>Rated</code> field. Each group's rating is shown in a field named <code>Rating</code> in each output document. Each output document also contains fields named <code>TotalRuntime</code>, <code>MedianRuntime</code>, and <code>NinetiethPercentileRuntime</code>, which store the total, median, and 90th percentile runtime values for movies in each group.</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">EmptyPipelineDefinition</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">Group</span><span class="p">(</span>
+<span class="w">        </span><span class="n">id</span><span class="p">:</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Rated</span><span class="p">,</span>
+<span class="w">        </span><span class="k">group</span><span class="p">:</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">new</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="n">Rating</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">Key</span><span class="p">,</span>
+<span class="w">            </span><span class="n">TotalRuntime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">Sum</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Runtime</span><span class="p">),</span>
+<span class="w">            </span><span class="n">MedianRuntime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Runtime</span><span class="p">).</span><span class="n">Median</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">NinetiethPercentileRuntime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">g</span><span class="p">.</span><span class="n">Select</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Runtime</span><span class="p">).</span><span class="n">Percentile</span><span class="p">(</span><span class="k">new</span><span class="p">[]</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="mf">0.9</span><span class="w"> </span><span class="p">})</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">);</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="Node.js"></p>
+<p>The Node.js examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB Node.js driver documentation.</p>
+<p><code>$group</code></p>
+<p>groups documents by the value of their <code>rated</code> field. Each output document contains a <code>rating</code> field that stores each group's rating. Each output document also contains a field named <code>totalRuntime</code> that stores the total runtime of all movies in the group</p>
+<p>To use the MongoDB Node.js driver to add a <code>$group</code> stage to an aggregation pipeline, use the <code>$group</code> operator in a pipeline object.</p>
+<p>The following example creates a pipeline stage that groups documents by the value of their <code>rated</code> field. Each output document contains a <code>rating</code> field that stores each group's rating. Each output document also contains a field named <code>totalRuntime</code> that stores the total runtime of all movies in the group. The example then runs the aggregation pipeline:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$group</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$rated&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">rating</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$first</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$rated&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nx">totalRuntime</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$runtime&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">];</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cursor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="nx">pipeline</span><span class="p">);</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">cursor</span><span class="p">;</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p></Tabs></p>
+<h2>Learn More</h2>
+<p>The Group and Total Data tutorial provides an extensive example of the <code>$group</code> operator in a common use case.</p>
+<p>To learn more about related pipeline stages, see the <code>$addFields</code> guide.</p>
+</body>
+</html>
