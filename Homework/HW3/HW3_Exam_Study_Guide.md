@@ -252,7 +252,18 @@ db.orders.aggregate([
 ])
 ```
 
-That single pipeline uses: `$unwind`, `$group`, `$project`, `$lookup`, `$match`, `$sort`, `$limit`. Add `{ $count: "n" }` to the tail if the question were instead *"how many customers had any revenue?"*.
+That single pipeline uses 7 of the 8 required stages: `$unwind`, `$group`, `$project`, `$lookup`, `$match`, `$sort`, `$limit`. To also exercise `$count`, swap the question to *"how many customers with `creditLimit > 50000` have placed any order?"* — the pipeline is the same shape but terminates with `$count`:
+
+```javascript
+db.orders.aggregate([
+  { $group: { _id: "$customerNumber" } },
+  { $lookup: { from: "customers", localField: "_id",
+               foreignField: "customerNumber", as: "cust" } },
+  { $unwind: "$cust" },
+  { $match: { "cust.creditLimit": { $gt: 50000 } } },
+  { $count: "nBigSpenders" }     // terminal stage → { nBigSpenders: <number> }
+])
+```
 
 ---
 
@@ -300,8 +311,9 @@ Critical gotchas:
 | Node + property filter | `(p:Person { name: 'Tom Hanks' })` |
 | Directed rel | `-[:ACTED_IN]->` |
 | Rel variable | `-[r:ACTED_IN]->` then `r.roles` |
-| Any-direction / undirected | `-[:FOLLOWS]-` (both ways), or `-[*]-` |
-| Variable-length | `-[:FOLLOWS*1..3]->` |
+| Any-direction / undirected | `-[:FOLLOWS]-` (matches both directions) |
+| Any relationship type | `-[r]->` (any labeled rel) or `-[*]-` (any rel, any length) |
+| Variable-length path | `-[:FOLLOWS*1..3]->` (between 1 and 3 hops) |
 | Predicate | `WHERE m.released >= 2000 AND m.title CONTAINS 'Matrix'` |
 | Return | `RETURN DISTINCT p.name AS name, count(m) AS n` |
 | Sort / page | `ORDER BY n DESC  SKIP 10  LIMIT 5` |
@@ -648,7 +660,7 @@ pipeline = [
 result = list(db["orders"].aggregate(pipeline))
 ```
 
-**Uses every required stage:** `$unwind`, `$group`, `$lookup`, `$match`, `$project`, `$sort`, `$limit`. If this came up in the exam, changing it to "how many French customers have ever ordered a 'Classic Cars' product?" is just swapping a `$match` condition and replacing the tail with `{ $count: "n" }`.
+**Uses 7 of the 8 required stages:** `$unwind`, `$group`, `$lookup`, `$match`, `$project`, `$sort`, `$limit`. If this came up in the exam, changing it to "how many French customers have ever ordered a 'Classic Cars' product?" is just swapping a `$match` condition and replacing the `$sort` / `$limit` tail with `{ $count: "n" }` — which then covers all 8 required stages.
 
 ---
 
