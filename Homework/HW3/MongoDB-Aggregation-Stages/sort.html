@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>sort</title>
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #222;
+  max-width: 8.5in;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+h1, h2, h3, h4 { color: #00684A; page-break-after: avoid; }
+h1 { border-bottom: 2px solid #00684A; padding-bottom: 0.2em; }
+h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.15em; margin-top: 1.5em; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f4f4f4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  background: #f4f4f4;
+  padding: 0.75em;
+  border-radius: 4px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #eef5f2; }
+blockquote {
+  border-left: 4px solid #00684A;
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: #555;
+  background: #f9f9f9;
+}
+.codehilite { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>$sort (aggregation stage)</h1>
+<h2>Definition</h2>
+<p><code>$sort</code>
+Sorts all input documents and returns them to the pipeline in sorted order.</p>
+<h2>Compatibility</h2>
+<p><code>$sort</code>You can use <code>$sort</code> for deployments hosted in the following environments:</p>
+<ul>
+<li>
+<p>MongoDB Atlas: The fully managed service for MongoDB deployments in the cloud</p>
+</li>
+<li>
+<p>MongoDB Enterprise: The subscription-based, self-managed version of MongoDB</p>
+</li>
+<li>
+<p>MongoDB Community: The source-available, free-to-use, and self-managed version of MongoDB</p>
+</li>
+</ul>
+<h2>Syntax</h2>
+<p>The <code>$sort</code> stage has the following prototype form:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">field1</span><span class="o">&gt;:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">sort</span><span class="w"> </span><span class="nx">order</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">field2</span><span class="o">&gt;:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">sort</span><span class="w"> </span><span class="nx">order</span><span class="o">&gt;</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p><code>$sort</code> takes a document that specifies the field(s) to sort by and the respective sort order. <code>&lt;sort order&gt;</code> can have one of the following values:</p>
+<table>
+<tr>
+<th id="Value">
+Value
+
+</th>
+<th id="Description">
+Description
+
+</th>
+</tr>
+<tr>
+<td headers="Value">
+`1`
+
+</td>
+<td headers="Description">
+Sort ascending.
+
+</td>
+</tr>
+<tr>
+<td headers="Value">
+`-1`
+
+</td>
+<td headers="Description">
+Sort descending.
+
+</td>
+</tr>
+<tr>
+<td headers="Value">
+`{ $meta: "textScore" }`
+
+</td>
+<td headers="Description">
+order. See Text Score Metadata Sort for an example.
+
+</td>
+</tr>
+</table>
+<p>If sorting on multiple fields, sort order is evaluated from left to right. For example, in the form above, documents are first sorted by <code>&lt;field1&gt;</code>. Then documents with the same <code>&lt;field1&gt;</code> values are further sorted by <code>&lt;field2&gt;</code>.</p>
+<h2>Behavior</h2>
+<h3>Performance</h3>
+<p><code>$sort``$sort</code> is a blocking stage, which causes the pipeline to wait for all input data to be retrieved for the blocking stage before processing the data. A blocking stage may reduce performance because it reduces parallel processing for a pipeline with multiple stages. A blocking stage may also use substantial amounts of memory for large data sets.</p>
+<h3>Limits</h3>
+<ul>
+<li>
+<p>You can sort on a maximum of 32 keys.</p>
+</li>
+<li>
+<p>Providing a sort pattern with duplicate fields causes an error.</p>
+</li>
+</ul>
+<h3>Sort Consistency</h3>
+<p>MongoDB does not store documents in a collection in a particular order. When sorting on a field which contains duplicate values, documents containing those values may be returned in any order.</p>
+<p>The <code>$sort</code> operation is not a "stable sort," which means that documents with equivalent sort keys are not guaranteed to remain in the same relative order in the output as they were in the input.</p>
+<p>If the field specified in the sort criteria does not exist in two documents, then the value on which they are sorted is the same. The two documents may be returned in any order.</p>
+<p>If consistent sort order is desired, include at least one field in your sort that contains unique values. The easiest way to guarantee this is to include the <code>_id</code> field in your sort query.</p>
+<p>Consider the following <code>restaurant</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">restaurants</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Central Park Cafe&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Manhattan&quot;</span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Rock A Feller Bar and Grill&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Queens&quot;</span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Empire State Pub&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Brooklyn&quot;</span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Stan&#39;s Pizzaria&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Manhattan&quot;</span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Jane&#39;s Deli&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Brooklyn&quot;</span><span class="p">},</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The following command uses the <code>$sort</code> stage to sort on the <code>borough</code> field:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">restaurants</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span>
+<span class="w">   </span><span class="p">[</span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">borough</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>In this example, sort order may be inconsistent, since the <code>borough</code> field contains duplicate values for both <code>Manhattan</code> and <code>Brooklyn</code>. Documents are returned in alphabetical order by <code>borough</code>, but the order of those documents with duplicate values for <code>borough</code> might not the be the same across multiple executions of the same sort. For example, here are the results from two different executions of the above command:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Empire State Pub&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Brooklyn&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Jane&#39;s Deli&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Brooklyn&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Central Park Cafe&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Manhattan&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Stan&#39;s Pizzaria&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Manhattan&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Rock A Feller Bar and Grill&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Queens&quot;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Jane&#39;s Deli&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Brooklyn&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Empire State Pub&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Brooklyn&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Stan&#39;s Pizzaria&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Manhattan&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Central Park Cafe&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Manhattan&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Rock A Feller Bar and Grill&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">borough</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Queens&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>While the values for <code>borough</code> are still sorted in alphabetical order, the order of the documents containing duplicate values for <code>borough</code> (i.e. <code>Manhattan</code> and <code>Brooklyn</code>) is not the same.</p>
+<p>To achieve a <em>consistent sort</em>, add a field which contains exclusively unique values to the sort. The following command uses the <code>$sort</code> stage to sort on both the <code>borough</code> field and the <code>_id</code> field:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">restaurants</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span>
+<span class="w">   </span><span class="p">[</span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">borough</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>Since the <code>_id</code> field is always guaranteed to contain exclusively unique values, the returned sort order will always be the same across multiple executions of the same sort.</p>
+<h3>Sort by an Array Field</h3>
+<p>When MongoDB sorts documents by an array-value field, the sort key depends on whether the sort is ascending or descending:</p>
+<ul>
+<li>
+<p>In an ascending sort, the sort key is the lowest value in the array.</p>
+</li>
+<li>
+<p>In a descending sort, the sort key is the highest value in the array.</p>
+</li>
+</ul>
+<p>The query filter does not affect sort key selection.</p>
+<p>For example, create a <code>shoes</code> collection with these documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">shoes</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mf">7</span><span class="p">,</span><span class="w"> </span><span class="mf">11</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="mf">8</span><span class="p">,</span><span class="w"> </span><span class="mf">9</span><span class="p">,</span><span class="w"> </span><span class="mf">10</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The following queries sort the documents by the <code>sizes</code> field in ascending and descending order:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1">// Ascending sort</span>
+<span class="nx">db</span><span class="p">.</span><span class="nx">shoes</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+
+<span class="c1">// Descending sort</span>
+<span class="nx">db</span><span class="p">.</span><span class="nx">shoes</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>Both of the preceding queries return the document with <code>_id: 'A'</code> first because sizes <code>7</code> and <code>11</code> are the lowest and highest in the entries in the <code>sizes</code> array, respectively.</p>
+<h4>Filter and Sort by an Array Field</h4>
+<p>When you filter and sort by a field that contains an array, the filter does not affect the value used as the sort key. The sort always considers all array values as potential sort keys.</p>
+<p>For example, the following query finds shoes with sizes greater than 9 and sorts the results by size in ascending order:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">shoes</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gt</span><span class="o">:</span><span class="w"> </span><span class="mf">9</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The sort is ascending, which means that the sort key is the lowest value in the <code>sizes</code> array:</p>
+<ul>
+<li>
+<p>In document <code>_id: 'A'</code>, the lowest <code>sizes</code> element is <code>7</code>. This value is used as the sort key even though it does not match the filter <code>{ sizes: { $gt: 9 }</code>.</p>
+</li>
+<li>
+<p>In document <code>_id: 'B'</code>, the lowest <code>sizes</code> element is <code>8</code>. Similarly, this value is used as the sort key even though it does not match the filter.</p>
+</li>
+</ul>
+<p>The query returns the document with <code>_id: 'A'</code> first.</p>
+<p>To only consider matched values as potential sort keys, you can generate a new field containing the matched values and sort on that field. For more information, see these pipeline stages and expressions:</p>
+<ul>
+<li>
+<p><code>$addFields</code></p>
+</li>
+<li>
+<p><code>$filter</code></p>
+</li>
+</ul>
+<h2><code>$sort</code> Operator and Memory</h2>
+<h3><code>$sort</code> + <code>$limit</code> Memory Optimization</h3>
+<p>When a <code>$sort</code> precedes a <code>$limit</code> and there are no intervening stages that modify the number of documents, the optimizer can coalesce the <code>$limit</code> into the <code>$sort</code>. This allows the <code>$sort</code> operation to only maintain the top <code>n</code> results as it progresses, where <code>n</code> is the specified limit, and ensures that MongoDB only needs to store <code>n</code> items in memory. This optimization still applies when <code>allowDiskUse</code> is <code>true</code> and the <code>n</code> items exceed the aggregation memory limit.</p>
+<p>Optimizations are subject to change between releases.</p>
+<h3><code>$sort</code> and Memory Restrictions</h3>
+<p>Starting in MongoDB 6.0, pipeline stages that require more than 100 megabytes of memory to execute write temporary files to disk by default. These temporary files last for the duration of the pipeline execution and can influence storage space on your instance. In earlier versions of MongoDB, you must pass  <code>{ allowDiskUse: true }</code> to individual <code>find</code> and <code>aggregate</code> commands to enable this behavior.</p>
+<p>Individual <code>find</code> and <code>aggregate</code> commands can override the <code>allowDiskUseByDefault</code> parameter by either:</p>
+<ul>
+<li>
+<p>Using <code>{ allowDiskUse: true }</code> to allow writing temporary files out to disk when <code>allowDiskUseByDefault</code> is set to <code>false</code></p>
+</li>
+<li>
+<p>Using <code>{ allowDiskUse: false }</code> to prohibit writing temporary files out to disk when <code>allowDiskUseByDefault</code> is set to <code>true</code></p>
+</li>
+</ul>
+<p>For MongoDB Atlas, it is recommended to configure storage auto-scaling to prevent long-running queries from filling up storage with temporary files.</p>
+<p>If your Atlas cluster uses storage auto-scaling, the temporary files may cause your cluster to scale to the next storage tier.</p>
+<p>For additional details, see Aggregation Pipeline Limits.</p>
+<h2><code>$sort</code> Operator and Performance</h2>
+<p>The <code>$sort</code> operator can take advantage of an index if it's used in the first stage of a pipeline or if it's only preceded by a <code>$match</code> stage.</p>
+<p>When you use the <code>$sort</code> on a sharded cluster, each shard sorts its result documents using an index where available. Then the <code>mongos</code> or one of the shards performs a streamed merge sort.</p>
+<h2>Examples</h2>
+<p><Tabs></p>
+<p><Tab name="MongoDB Shell"></p>
+<h3>Ascending/Descending Sort</h3>
+<p>For the field or fields to sort by, set the sort order to <code>1</code> or <code>-1</code> to specify an ascending or descending sort respectively, as in the following example:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">users</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span>
+<span class="w">   </span><span class="p">[</span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">age</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">posts</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>This operation sorts the documents in the <code>users</code> collection, in descending order according by the <code>age</code> field and then in ascending order according to the value in the <code>posts</code> field.</p>
+<p>When comparing values of different BSON types in sort operations, MongoDB uses the following comparison order, from lowest to highest:</p>
+<ol>
+<li>
+<p>MinKey (internal type)</p>
+</li>
+<li>
+<p>Null</p>
+</li>
+<li>
+<p>Numbers (ints, longs, doubles, decimals)</p>
+</li>
+<li>
+<p>Symbol, String</p>
+</li>
+<li>
+<p>Object</p>
+</li>
+<li>
+<p>Array</p>
+</li>
+<li>
+<p>BinData</p>
+</li>
+<li>
+<p>ObjectId</p>
+</li>
+<li>
+<p>Boolean</p>
+</li>
+<li>
+<p>Date</p>
+</li>
+<li>
+<p>Timestamp</p>
+</li>
+<li>
+<p>Regular Expression</p>
+</li>
+<li>
+<p>JavaScript Code</p>
+</li>
+<li>
+<p>JavaScript Code with Scope</p>
+</li>
+<li>
+<p>MaxKey (internal type)</p>
+</li>
+</ol>
+<p>For details on the comparison/sort order for specific types, see Comparison/Sort Order.</p>
+<h3>Text Score Metadata Sort</h3>
+<p><code>$text</code> provides text query capabilities for self-managed (non-Atlas) deployments. For data hosted on MongoDB, MongoDB also offers an improved full-text query solution, MongoDB Search.</p>
+<p>For a pipeline that includes <code>$text</code>, you can sort by descending relevance score using the <code>{ $meta: "textScore" }</code> expression. In the <code>{ &lt;sort-key&gt; }</code> document, set the <code>{ $meta: "textScore" }</code> expression to an arbitrary field name. The field name is ignored by the query system. For example:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">users</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span>
+<span class="w">   </span><span class="p">[</span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$text</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$search</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;operating&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$meta</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;textScore&quot;</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="nx">posts</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>This operation uses the <code>$text</code> operator to match the documents, and then sorts first by the <code>"textScore"</code> metadata in descending order, and then by the <code>posts</code> field in descending order. The <code>score</code> field name in the sort document is ignored by the query system. In this pipeline, the <code>"textScore"</code> metadata is not included in the projection and is not returned as part of the matching documents. See <code>$meta</code> for more information.</p>
+<p></Tab></p>
+<p><Tab name="C#"></p>
+<p>The C# examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB .NET/C# Driver documentation.</p>
+<p>The following <code>Movie</code> class models the documents in the <code>sample_mflix.movies</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Movie</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ObjectId</span><span class="w"> </span><span class="n">Id</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Runtime</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Title</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Rated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Genres</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Plot</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ImdbData</span><span class="w"> </span><span class="n">Imdb</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Year</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Index</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w"> </span><span class="n">Comments</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="na">[BsonElement(&quot;lastupdated&quot;)]</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">DateTime</span><span class="w"> </span><span class="n">LastUpdated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The C# classes on this page use Pascal case for their property names, but the field names in the MongoDB collection use camel case. To account for this difference, you can use the following code to register a <code>ConventionPack</code> when your application starts:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConventionPack</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CamelCaseElementNameConvention</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="n">ConventionRegistry</span><span class="p">.</span><span class="n">Register</span><span class="p">(</span><span class="s">&quot;CamelCase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">true</span><span class="p">);</span>
+</code></pre></div>
+
+<p><code>$sort</code></p>
+<p>Sort()</p>
+<p>sorts the input <code>Movie</code> documents first in descending order by the <code>Year</code> field, then in ascending order by the <code>Title</code> field:</p>
+<p>To use the MongoDB .NET/C# driver to add a <code>$sort</code> stage to an aggregation pipeline, call the Sort() method on a <code>PipelineDefinition</code> object.</p>
+<p>The following example creates a pipeline stage that sorts the input <code>Movie</code> documents first in descending order by the <code>Year</code> field, then in ascending order by the <code>Title</code> field:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">EmptyPipelineDefinition</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">Sort</span><span class="p">(</span><span class="n">Builders</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">.</span><span class="n">Sort</span><span class="p">.</span><span class="n">Combine</span><span class="p">(</span>
+<span class="w">        </span><span class="n">Builders</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">.</span><span class="n">Sort</span><span class="p">.</span><span class="n">Descending</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Year</span><span class="p">),</span>
+<span class="w">        </span><span class="n">Builders</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">.</span><span class="n">Sort</span><span class="p">.</span><span class="n">Ascending</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Title</span><span class="p">)));</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="Node.js"></p>
+<p>The Node.js examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB Node.js driver documentation.</p>
+<p><code>$sort</code></p>
+<p>sorts the input <code>movie</code> documents first in descending order by the <code>year</code> field, and then in ascending order by the <code>title</code> field</p>
+<p>To use the MongoDB Node.js driver to add a <code>$sort</code> stage to an aggregation pipeline, use the <code>$sort</code> operator in a pipeline object.</p>
+<p>The following example creates a pipeline stage that sorts the input <code>movie</code> documents first in descending order by the <code>year</code> field, and then in ascending order by the <code>title</code> field. The example then runs the aggregation pipeline:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">year</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}];</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cursor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="nx">pipeline</span><span class="p">);</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">cursor</span><span class="p">;</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p></Tabs></p>
+<h2>Learn More</h2>
+<p>To see full aggregation examples that use the <code>$sort</code> stage, see the Complete Aggregation Pipeline Tutorials.</p>
+</body>
+</html>

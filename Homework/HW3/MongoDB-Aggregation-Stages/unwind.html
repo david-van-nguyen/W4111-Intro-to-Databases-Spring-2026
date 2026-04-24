@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>unwind</title>
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #222;
+  max-width: 8.5in;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+h1, h2, h3, h4 { color: #00684A; page-break-after: avoid; }
+h1 { border-bottom: 2px solid #00684A; padding-bottom: 0.2em; }
+h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.15em; margin-top: 1.5em; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f4f4f4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  background: #f4f4f4;
+  padding: 0.75em;
+  border-radius: 4px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #eef5f2; }
+blockquote {
+  border-left: 4px solid #00684A;
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: #555;
+  background: #f9f9f9;
+}
+.codehilite { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>$unwind (aggregation stage)</h1>
+<h2>Definition</h2>
+<p><code>$unwind</code>
+Deconstructs an array field from the input documents to output a document for <em>each</em> element. Each output document is the input document with the value of the array field replaced by the element.</p>
+<h2>Compatibility</h2>
+<p><code>$unwind</code>You can use <code>$unwind</code> for deployments hosted in the following environments:</p>
+<ul>
+<li>
+<p>MongoDB Atlas: The fully managed service for MongoDB deployments in the cloud</p>
+</li>
+<li>
+<p>MongoDB Enterprise: The subscription-based, self-managed version of MongoDB</p>
+</li>
+<li>
+<p>MongoDB Community: The source-available, free-to-use, and self-managed version of MongoDB</p>
+</li>
+</ul>
+<h2>Syntax</h2>
+<p>You can pass a field path operand or a document operand to unwind an array field.</p>
+<h3>Field Path Operand</h3>
+<p>You can pass the array field path to <code>$unwind</code>. When using this syntax, <code>$unwind</code> does not output a document if the field value is null, missing, or an empty array.</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">field</span><span class="w"> </span><span class="nx">path</span><span class="o">&gt;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>When you specify the field path, prefix the field name with a dollar sign <code>$</code> and enclose in quotes.</p>
+<h3>Document Operand with Options</h3>
+<p>You can pass a document to <code>$unwind</code> to specify various behavior options.</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nx">$unwind</span><span class="o">:</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">field</span><span class="w"> </span><span class="nx">path</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">includeArrayIndex</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">string</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">preserveNullAndEmptyArrays</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="kr">boolean</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<table>
+<tr>
+<th id="Field">
+Field
+
+</th>
+<th id="Type">
+Type
+
+</th>
+<th id="Description">
+Description
+
+</th>
+</tr>
+<tr>
+<td headers="Field">
+path
+
+</td>
+<td headers="Type">
+string
+
+</td>
+<td headers="Description">
+Field path to an array field. To specify a field path, prefix the field name with a dollar sign `$` and enclose in quotes.
+
+</td>
+</tr>
+<tr>
+<td headers="Field">
+includeArrayIndex
+
+</td>
+<td headers="Type">
+string
+
+</td>
+<td headers="Description">
+Optional. The name of a new field to hold the array index of the element. The name cannot start with a dollar sign `$`.
+
+</td>
+</tr>
+<tr>
+<td headers="Field">
+preserveNullAndEmptyArrays
+
+</td>
+<td headers="Type">
+boolean
+
+</td>
+<td headers="Description">
+Optional.
+
+- If `true`, if `path` is missing or is an empty array, `$unwind` omits the output field from the output document. If the value is `null`, the field remains `null`.
+
+- If `false`, if `path` is null, missing, or an empty array, `$unwind` does not output a document.
+
+The default value is `false`.
+
+</td>
+</tr>
+</table>
+
+<h2>Behaviors</h2>
+<h3>Non-Array Field Path</h3>
+<p>When the value at <code>path</code> does not resolve to an array, <code>$unwind</code> behaves as follows:</p>
+<ul>
+<li>
+<p>If the value is not missing, not <code>null</code>, and not an empty array, <code>$unwind</code> outputs a single document using the value as-is.</p>
+</li>
+<li>
+<p>If <code>includeArrayIndex</code> is specified, the index is <code>0</code> for array inputs and <code>null</code> for non-array inputs. Documents later in the list have an index greater than <code>0</code>.</p>
+</li>
+<li>
+<p>If the value is missing, <code>null</code>, or an empty array, <code>$unwind</code> follows the preserveNullAndEmptyArrays option. When <code>includeArrayIndex</code> is specified and the document is preserved, the index is <code>null</code>.</p>
+</li>
+</ul>
+<h3>Missing Field</h3>
+<p>If you specify a path for a field that does not exist in an input document or the field is an empty array, <code>$unwind</code>, by default, ignores the input document and will not output documents for that input document.</p>
+<p>To output documents where the array field is missing, null or an empty array, use the preserveNullAndEmptyArrays option.</p>
+<h2>Examples</h2>
+<p><Tabs></p>
+<p><Tab name="MongoDB Shell"></p>
+<h3>Unwind Array</h3>
+<p>In <code>mongosh</code>, create a sample collection named <code>inventory</code> with the following document:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory</span><span class="p">.</span><span class="nx">insertOne</span><span class="p">({</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">})</span>
+</code></pre></div>
+
+<p>The following aggregation uses the <code>$unwind</code> stage to output a document for each element in the <code>sizes</code> array:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The operation returns the following results:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>Each document is identical to the input document except for the value of the <code>sizes</code> field which now holds a value from the original <code>sizes</code> array.</p>
+<h3>Missing or Non-array Values</h3>
+<p>Consider the <code>clothing</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">clothing</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Shirt&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Shorts&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Hat&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Gloves&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Scarf&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<p><code>$unwind</code> treats the <code>sizes</code> field as a single element array if:</p>
+<ul>
+<li>
+<p>the field is present,</p>
+</li>
+<li>
+<p>the value is not null, and</p>
+</li>
+<li>
+<p>the value is not an empty array.</p>
+</li>
+</ul>
+<p>Expand the <code>sizes</code> arrays with <code>$unwind</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">clothing</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The <code>$unwind</code> operation returns:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Shirt&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;S&#39;</span><span class="w"> </span><span class="p">},</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Shirt&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;M&#39;</span><span class="w"> </span><span class="p">},</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Shirt&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;L&#39;</span><span class="w"> </span><span class="p">},</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;Hat&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;M&#39;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p>In document <code>"_id": 1</code>, <code>sizes</code> is a populated array. <code>$unwind</code> returns a document for each element in the <code>sizes</code> field.</p>
+</li>
+<li>
+<p>In document <code>"_id": 3</code>, <code>sizes</code> resolves to a single element array.</p>
+</li>
+<li>
+<p>Documents <code>"_id": 2, "_id": 4</code>, and <code>"_id": 5</code> do not return anything because the <code>sizes</code> field cannot be reduced to a single element array.</p>
+</li>
+</ul>
+<p>The <code>{ path: &lt;FIELD&gt; }</code> syntax is optional. The following <code>$unwind</code> operations are equivalent.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">clothing</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">)</span>
+<span class="nx">db</span><span class="p">.</span><span class="nx">clothing</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<h3><code>preserveNullAndEmptyArrays</code> and <code>includeArrayIndex</code></h3>
+<p>The <code>preserveNullAndEmptyArrays</code> and <code>includeArrayIndex</code> examples use the following collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory2</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">([</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;EFG&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;120&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IJK&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;160&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;LMN&quot;</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;XYZ&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5.75&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<h4><code>preserveNullAndEmptyArrays</code></h4>
+<p>The following <code>$unwind</code> operation uses the preserveNullAndEmptyArrays option to include documents whose <code>sizes</code> field is null, missing, or an empty array.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory2</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">preserveNullAndEmptyArrays</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The output includes those documents where the <code>sizes</code> field is null, missing, or an empty array:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;EFG&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;120&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IJK&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;160&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;LMN&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;XYZ&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5.75&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h4><code>includeArrayIndex</code></h4>
+<p>The following <code>$unwind</code> operation uses the includeArrayIndex option to include the array index in the output.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory2</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$unwind</span><span class="o">:</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">includeArrayIndex</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;arrayIndex&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}])</span>
+</code></pre></div>
+
+<p>The operation unwinds the <code>sizes</code> array and includes the array index in the new <code>arrayIndex</code> field. If the <code>sizes</code> field does not resolve to a populated array but is not missing, null, or an empty array, the <code>arrayIndex</code> field is <code>null</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">arrayIndex</span><span class="o">:</span><span class="w"> </span><span class="nx">Long</span><span class="p">(</span><span class="mf">0</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">arrayIndex</span><span class="o">:</span><span class="w"> </span><span class="nx">Long</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">arrayIndex</span><span class="o">:</span><span class="w"> </span><span class="nx">Long</span><span class="p">(</span><span class="mf">2</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IJK&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;160&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">arrayIndex</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<h3>Group by Unwound Values</h3>
+<p>In <code>mongosh</code>, create a sample collection named <code>inventory2</code> with the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory2</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">([</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;EFG&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;120&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IJK&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;160&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;LMN&quot;</span><span class="w"> </span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;XYZ&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5.75&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<p>The following pipeline unwinds the <code>sizes</code> array and groups the resulting documents by the unwound size values:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">inventory2</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="c1">// First Stage</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">preserveNullAndEmptyArrays</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="c1">// Second Stage</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">$group</span><span class="o">:</span>
+<span class="w">       </span><span class="p">{</span>
+<span class="w">         </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$sizes&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$avg</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$price&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">       </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="c1">// Third Stage</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">$sort</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;averagePrice&quot;</span><span class="o">:</span><span class="w"> </span><span class="o">-</span><span class="mf">1</span><span class="w"> </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The <code>$unwind</code> stage outputs a new document for each element in the <code>sizes</code> array. The stage uses the preserveNullAndEmptyArrays option to include in the output those documents where <code>sizes</code> field is missing, null or an empty array. This stage passes the following documents to the next stage:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;ABC&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;EFG&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;120&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;IJK&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;160&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;LMN&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;10&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="nx">item</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;XYZ&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;5.75&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">sizes</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>The <code>$group</code> stage groups the documents by <code>sizes</code> and calculates the average price of each size. This stage passes the following documents to the next stage:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;120&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;45.25&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>The <code>$sort</code> stage sorts the documents by <code>averagePrice</code> in descending order. The operation returns the following result:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;120&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;L&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;S&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;80&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nx">averagePrice</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;45.25&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<ul>
+<li>
+<p><code>$group</code></p>
+</li>
+<li>
+<p><code>$sort</code></p>
+</li>
+</ul>
+<h3>Unwind Embedded Arrays</h3>
+<p>In <code>mongosh</code>, create a sample collection named <code>sales</code> with the following documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">   </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pens&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;writing&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;school&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="w"> </span><span class="p">],</span>
+<span class="w">      </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;12.00&quot;</span><span class="p">),</span>
+<span class="w">      </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">)</span>
+<span class="w">     </span><span class="p">},</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;envelopes&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="w"> </span><span class="p">],</span>
+<span class="w">      </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;19.95&quot;</span><span class="p">),</span>
+<span class="w">      </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;8&quot;</span><span class="p">)</span>
+<span class="w">     </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">   </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;laptop&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;electronics&quot;</span><span class="w"> </span><span class="p">],</span>
+<span class="w">      </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;800.00&quot;</span><span class="p">),</span>
+<span class="w">      </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+<span class="w">     </span><span class="p">},</span>
+<span class="w">     </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;notepad&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;school&quot;</span><span class="w"> </span><span class="p">],</span>
+<span class="w">      </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;14.95&quot;</span><span class="p">),</span>
+<span class="w">      </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="nx">Int32</span><span class="p">(</span><span class="s2">&quot;3&quot;</span><span class="p">)</span>
+<span class="w">     </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<p>The following operation groups the items sold by their tags and calculates the total sales amount per each tag.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">sales</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">([</span>
+<span class="w">  </span><span class="c1">// First Stage</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$items&quot;</span><span class="w"> </span><span class="p">},</span>
+
+<span class="w">  </span><span class="c1">// Second Stage</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$items.tags&quot;</span><span class="w"> </span><span class="p">},</span>
+
+<span class="w">  </span><span class="c1">// Third Stage</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$group</span><span class="o">:</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$items.tags&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">totalSalesAmount</span><span class="o">:</span>
+<span class="w">          </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$multiply</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;$items.price&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;$items.quantity&quot;</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">])</span>
+</code></pre></div>
+
+<p>The first <code>$unwind</code> stage outputs a new document for each element in the <code>items</code> array:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pens&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;writing&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;school&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;12.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;envelopes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;19.95&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">8</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;laptop&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;electronics&quot;</span><span class="w"> </span><span class="p">],</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;800.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="s2">&quot;: 1 } }</span>
+<span class="s2">{ _id: &quot;</span><span class="mf">2</span><span class="s2">&quot;, items: { name: &quot;</span><span class="nx">notepad</span><span class="s2">&quot;, tags: [ &quot;</span><span class="nx">stationary</span><span class="s2">&quot;, &quot;</span><span class="nx">school</span><span class="s2">&quot; ], price: Decimal128(&quot;</span><span class="mf">14.95</span><span class="err">&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>The second <code>$unwind</code> stage outputs a new document for each element in the <code>items.tags</code> arrays:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pens&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;writing&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;12.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pens&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;12.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pens&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;school&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;12.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;pens&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;12.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;envelopes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;19.95&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">8</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;envelopes&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;price&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;19.95&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">8</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;laptop&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;800.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;laptop&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;electronics&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;800.00&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;notepad&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">tags</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">price</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;14.95&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">items</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;notepad&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ags: &quot;</span><span class="nx">school</span><span class="s2">&quot;, price: Decimal128(&quot;</span><span class="mf">14.95</span><span class="err">&quot;</span><span class="p">),</span><span class="w"> </span><span class="nx">quantity</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>The <code>$group</code> stage groups the documents by the tag and calculates the total sales amount of items with each tag:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;writing&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">totalSalesAmount</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;60.00&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;stationary&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">totalSalesAmount</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;264.45&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;electronics&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">totalSalesAmount</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;800.00&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;school&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">totalSalesAmount</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;104.85&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+<span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;office&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">totalSalesAmount</span><span class="o">:</span><span class="w"> </span><span class="nx">Decimal128</span><span class="p">(</span><span class="s2">&quot;1019.60&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="C#"></p>
+<p>The C# examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB .NET/C# Driver documentation.</p>
+<p>The following <code>Movie</code> class models the documents in the <code>sample_mflix.movies</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Movie</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ObjectId</span><span class="w"> </span><span class="n">Id</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Runtime</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Title</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Rated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Genres</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Plot</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ImdbData</span><span class="w"> </span><span class="n">Imdb</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Year</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Index</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w"> </span><span class="n">Comments</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="na">[BsonElement(&quot;lastupdated&quot;)]</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">DateTime</span><span class="w"> </span><span class="n">LastUpdated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The C# classes on this page use Pascal case for their property names, but the field names in the MongoDB collection use camel case. To account for this difference, you can use the following code to register a <code>ConventionPack</code> when your application starts:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConventionPack</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CamelCaseElementNameConvention</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="n">ConventionRegistry</span><span class="p">.</span><span class="n">Register</span><span class="p">(</span><span class="s">&quot;CamelCase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">true</span><span class="p">);</span>
+</code></pre></div>
+
+<p><code>$unwind</code></p>
+<p>Unwind()</p>
+<p>iterates over the <code>Genres</code> field in each input <code>Movie</code> document. For each value in the <code>Genres</code> field, the stage creates a new <code>Movie</code> document and populates its <code>Genres</code> field with the <code>Genres</code> value from the input document.</p>
+<p>To use the MongoDB .NET/C# driver to add a <code>$unwind</code> stage to an aggregation pipeline, call the Unwind() method on a <code>PipelineDefinition</code> object.</p>
+<p>The following example creates a pipeline stage that iterates over the <code>Genres</code> field in each input <code>Movie</code> document. For each value in the <code>Genres</code> field, the stage creates a new <code>Movie</code> document and populates its <code>Genres</code> field with the <code>Genres</code> value from the input document.</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">EmptyPipelineDefinition</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">Unwind</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Genres</span><span class="p">);</span>
+</code></pre></div>
+
+<p>You can use an AggregateUnwindOptions object to customize the behavior of the <code>Unwind()</code> method. The following example performs the same operation as the previous example, but also includes the following options:</p>
+<ul>
+<li>
+<p><code>PreserveNullAndEmptyArrays</code> ensures that documents that contain an empty array in the <code>Genres</code> field are included in the output.</p>
+</li>
+<li>
+<p>The <code>IncludeArrayIndex</code> option adds a new field named <code>Index</code> to each output document. The value of this field is the array index of the <code>Genres</code> field's value in the input document's <code>Genres</code> array.</p>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">EmptyPipelineDefinition</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">Unwind</span><span class="p">(</span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Genres</span><span class="p">,</span>
+<span class="w">        </span><span class="k">new</span><span class="w"> </span><span class="n">AggregateUnwindOptions</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">           </span><span class="n">PreserveNullAndEmptyArrays</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">,</span>
+<span class="w">           </span><span class="n">IncludeArrayIndex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ExpressionFieldDefinition</span><span class="o">&lt;</span><span class="n">Movie</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span>
+<span class="w">               </span><span class="n">m</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">Index</span><span class="p">)</span>
+<span class="w">        </span><span class="p">});</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="Node.js"></p>
+<p>The Node.js examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB Node.js driver documentation.</p>
+<p><code>$unwind</code></p>
+<p>iterates over the <code>genres</code> field in each input <code>movie</code> document. For each value in the <code>genres</code> field, the stage creates a new <code>movie</code> document and populates its <code>genres</code> field with the <code>genres</code> value from the input document</p>
+<p>To use the MongoDB Node.js driver to add a <code>$unwind</code> stage to an aggregation pipeline, use the <code>$unwind</code> operator in a pipeline object.</p>
+<p>The following example creates a pipeline stage that iterates over the <code>genres</code> field in each input <code>movie</code> document. For each value in the <code>genres</code> field, the stage creates a new <code>movie</code> document and populates its <code>genres</code> field with the <code>genres</code> value from the input document. The example then runs the aggregation pipeline:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$genres&quot;</span><span class="w"> </span><span class="p">}];</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cursor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="nx">pipeline</span><span class="p">);</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">cursor</span><span class="p">;</span>
+</code></pre></div>
+
+<p>You can customize the behavior of the <code>$unwind</code> method. The following example performs the same operation as the previous example, but also includes the following options:</p>
+<ul>
+<li>
+<p><code>preserveNullAndEmptyArrays</code> ensures that documents that contain an empty array in the <code>genres</code> field are included in the output.</p>
+</li>
+<li>
+<p><code>includeArrayIndex</code> adds a new field named <code>index</code> to each output document. The field contains the array index of the <code>genres</code> value in the input document's <code>genres</code> field.</p>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">$unwind</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">path</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;$genres&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">preserveNullAndEmptyArrays</span><span class="o">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">includeArrayIndex</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;index&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">];</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cursor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="nx">pipeline</span><span class="p">);</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">cursor</span><span class="p">;</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p></Tabs></p>
+<h2>Learn More</h2>
+<p>To learn more about related methods, see the <code>$group</code>, <code>$sum</code>, and <code>$multiply</code> guides.</p>
+<p>To see how to use <code>$unwind</code> in a full example, see the Unwind Arrays and Group Data tutorial.</p>
+</body>
+</html>

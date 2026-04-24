@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>count</title>
+<style>
+@page { size: Letter; margin: 0.75in; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  color: #222;
+  max-width: 8.5in;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+h1, h2, h3, h4 { color: #00684A; page-break-after: avoid; }
+h1 { border-bottom: 2px solid #00684A; padding-bottom: 0.2em; }
+h2 { border-bottom: 1px solid #ccc; padding-bottom: 0.15em; margin-top: 1.5em; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f4f4f4;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+pre {
+  background: #f4f4f4;
+  padding: 0.75em;
+  border-radius: 4px;
+  overflow-x: auto;
+  page-break-inside: avoid;
+}
+pre code { background: none; padding: 0; }
+table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  page-break-inside: avoid;
+}
+th, td {
+  border: 1px solid #bbb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th { background: #eef5f2; }
+blockquote {
+  border-left: 4px solid #00684A;
+  margin: 1em 0;
+  padding: 0.2em 1em;
+  color: #555;
+  background: #f9f9f9;
+}
+.codehilite { background: #f4f4f4; }
+</style>
+</head>
+<body>
+<h1>$count (aggregation stage)</h1>
+<h2>Definition</h2>
+<p><code>$count</code>
+Passes a document to the next stage that contains a count of the number of documents input to the stage.</p>
+<p>This page describes the <code>$count</code> aggregation pipeline stage. For the <code>$count</code> aggregation accumulator, see <code>$count (aggregation accumulator)</code>.</p>
+<h2>Compatibility</h2>
+<p><code>$count</code>You can use <code>$count</code> for deployments hosted in the following environments:</p>
+<ul>
+<li>
+<p>MongoDB Atlas: The fully managed service for MongoDB deployments in the cloud</p>
+</li>
+<li>
+<p>MongoDB Enterprise: The subscription-based, self-managed version of MongoDB</p>
+</li>
+<li>
+<p>MongoDB Community: The source-available, free-to-use, and self-managed version of MongoDB</p>
+</li>
+</ul>
+<h2>Syntax</h2>
+<p><code>$count</code> has the following syntax:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nx">$count</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="nx">string</span><span class="o">&gt;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p><code>&lt;string&gt;</code> is the name of the output field which has the count as its value. <code>&lt;string&gt;</code> must be a non-empty string, must not start with <code>$</code> and must not contain the <code>.</code> character.</p>
+<h2>Behavior</h2>
+<p>The return type is represented by the smallest type that can store the final value of count: <code>integer</code> → <code>long</code> → <code>double</code></p>
+<p>The <code>$count</code> stage is equivalent to the following <code>$group</code> and <code>$project</code> sequence:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$group</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nx">myCount</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$sum</span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$project</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">_id</span><span class="o">:</span><span class="w"> </span><span class="mf">0</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p><code>myCount</code> is the output field that stores the count. You can specify another name for the output field.</p>
+<p>If the input dataset is empty, <code>$count</code> doesn't return a result.</p>
+<p><code>db.collection.countDocuments()</code> wraps the <code>$group</code> aggregation stage with a <code>$sum</code> expression.</p>
+<h2>Examples</h2>
+<p><Tabs></p>
+<p><Tab name="MongoDB Shell"></p>
+<p>Create a collection named <code>scores</code> with these documents:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">scores</span><span class="p">.</span><span class="nx">insertMany</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">1</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;History&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">88</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;History&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">92</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;History&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">97</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;History&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">71</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">5</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;History&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">79</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;_id&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">6</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;subject&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;History&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;score&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">83</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The following aggregation operation has two stages:</p>
+<ol>
+<li>
+<p>The <code>$match</code> stage excludes documents that have a <code>score</code> value of less than or equal to <code>80</code> to pass along the documents with <code>score</code> greater than <code>80</code> to the next stage.</p>
+</li>
+<li>
+<p>The <code>$count</code> stage returns a count of the remaining documents in the aggregation pipeline and assigns the value to a field called <code>passing_scores</code>.</p>
+</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">scores</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gt</span><span class="o">:</span><span class="w"> </span><span class="mf">80</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$count</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;passing_scores&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p>The operation returns this result:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="s2">&quot;passing_scores&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mf">4</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+
+<p>If the input dataset is empty, <code>$count</code> doesn't return a result. The following example doesn't return a result because there are no documents with scores greater than <code>99</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">db</span><span class="p">.</span><span class="nx">scores</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$match</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">score</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">$gt</span><span class="o">:</span><span class="w"> </span><span class="mf">99</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span><span class="w"> </span><span class="nx">$count</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;high_scores&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span><span class="w"> </span><span class="p">)</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="C#"></p>
+<p>The C# examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB .NET/C# Driver documentation.</p>
+<p>The following <code>Movie</code> class models the documents in the <code>sample_mflix.movies</code> collection:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">Movie</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ObjectId</span><span class="w"> </span><span class="n">Id</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Runtime</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Title</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Rated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">List</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="n">Genres</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="n">Plot</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">ImdbData</span><span class="w"> </span><span class="n">Imdb</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Year</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">Index</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">string</span><span class="p">[]</span><span class="w"> </span><span class="n">Comments</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+
+<span class="w">    </span><span class="na">[BsonElement(&quot;lastupdated&quot;)]</span>
+<span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">DateTime</span><span class="w"> </span><span class="n">LastUpdated</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">get</span><span class="p">;</span><span class="w"> </span><span class="k">set</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The C# classes on this page use Pascal case for their property names, but the field names in the MongoDB collection use camel case. To account for this difference, you can use the following code to register a <code>ConventionPack</code> when your application starts:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ConventionPack</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CamelCaseElementNameConvention</span><span class="p">()</span><span class="w"> </span><span class="p">};</span>
+<span class="n">ConventionRegistry</span><span class="p">.</span><span class="n">Register</span><span class="p">(</span><span class="s">&quot;CamelCase&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">camelCaseConvention</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="k">true</span><span class="p">);</span>
+</code></pre></div>
+
+<p><code>$count</code></p>
+<p>Count()</p>
+<p>counts the number of input documents and returns a document with the count as its value:</p>
+<p>To use the MongoDB .NET/C# driver to add a <code>$count</code> stage to an aggregation pipeline, call the Count() method on a <code>PipelineDefinition</code> object.</p>
+<p>The following example creates a pipeline stage that counts the number of input documents and returns a document with the count as its value:</p>
+<div class="codehilite"><pre><span></span><code><span class="kt">var</span><span class="w"> </span><span class="n">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">EmptyPipelineDefinition</span><span class="o">&lt;</span><span class="n">Movie</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="w">    </span><span class="p">.</span><span class="n">Count</span><span class="p">();</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p><Tab name="Node.js"></p>
+<p>The Node.js examples on this page use the <code>sample_mflix</code> database from the Atlas sample datasets. To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see Get Started in the MongoDB Node.js driver documentation.</p>
+<p><code>$count</code></p>
+<p>counts the number of input documents from the <code>sample_mflix.movies</code> collection and returns a document containing the count</p>
+<p>To use the MongoDB Node.js driver to add a <code>$count</code> stage to an aggregation pipeline, use the <code>$count</code> operator in a pipeline object.</p>
+<p>The following example creates a pipeline stage that counts the number of input documents from the <code>sample_mflix.movies</code> collection and returns a document containing the count. The example then runs the aggregation pipeline:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">pipeline</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[{</span><span class="w"> </span><span class="nx">$count</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;movies&quot;</span><span class="w"> </span><span class="p">}];</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">cursor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">collection</span><span class="p">.</span><span class="nx">aggregate</span><span class="p">(</span><span class="nx">pipeline</span><span class="p">);</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">cursor</span><span class="p">;</span>
+</code></pre></div>
+
+<p></Tab></p>
+<p></Tabs></p>
+<h2>Learn More</h2>
+<ul>
+<li>
+<p><code>db.collection.countDocuments()</code></p>
+</li>
+<li>
+<p><code>$collStats</code></p>
+</li>
+<li>
+<p><code>db.collection.estimatedDocumentCount()</code></p>
+</li>
+<li>
+<p><code>count</code></p>
+</li>
+<li>
+<p><code>db.collection.count()</code></p>
+</li>
+</ul>
+</body>
+</html>
