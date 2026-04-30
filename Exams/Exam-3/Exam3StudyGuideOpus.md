@@ -427,8 +427,9 @@ The fix: **write-ahead logging (WAL)**.
 
 **The WAL rule.** Before any data page is written to disk, the corresponding **log records** must already be on stable storage.
 
-- The **log** is a sequential file of `<txn_id, page_id, offset, before_image, after_image>` records.
-- For each update: log record first, then update the buffer page (which may or may not be flushed later).
+- The **log** is a sequential file of `<txn_id, page_id, offset, before_image, after_image>` records (each tagged with a unique **LSN**, log sequence number).
+- For each update: write the log record to the in-memory log buffer **and** modify the buffer page; tag the page with the LSN of its latest log record.
+- **The WAL rule applies at flush time:** before flushing a dirty data page to disk, all log records up to that page's LSN must already be on disk. (The in-memory order of "modify page" vs "append log record" is not what matters; the disk order is.)
 - For commit: write a `<COMMIT t>` record and **force the log** to disk. Once that fsync returns, the transaction is durable.
 - **Steal / no-force buffer policy:** dirty pages from uncommitted transactions can be written to disk early ("steal"); pages from committed transactions are not forced to disk on commit ("no-force"). This decouples buffer management from durability.
 
@@ -489,13 +490,36 @@ After a crash, the recovery manager runs **three passes** over the log:
 - **Precedence (serialization) graph.** Nodes = transactions. Edge `Ti -> Tj` whenever `Ti` has a conflicting operation that precedes a conflicting operation of `Tj` on the same item.
 - **Theorem.** A schedule is conflict serializable **iff its precedence graph is acyclic**. A topological sort of an acyclic graph gives an equivalent serial order.
 
-```
-Example precedence cycle (NOT conflict serializable):
+**Worked cycle example.** Consider the schedule
 
-   T1 --R(A)/W(A)--> T2
-    ^                |
-    |                W(B)/R(B)
-    +----------------+
+```
+   Time -->  1       2       3       4
+   T1:       R(A)            W(B)
+   T2:               W(A)            R(B)
+```
+
+The conflicts are:
+
+- `T1.R(A)` precedes `T2.W(A)`  -> edge `T1 -> T2`
+- `T1.W(B)` precedes `T2.R(B)`  -> edge `T1 -> T2` (no cycle yet)
+
+Now flip the second pair:
+
+```
+   Time -->  1       2       3       4
+   T1:       R(A)                    W(B)
+   T2:               W(A)    R(B)
+```
+
+- `T1.R(A)` precedes `T2.W(A)`  -> edge `T1 -> T2`
+- `T2.R(B)` precedes `T1.W(B)`  -> edge `T2 -> T1`
+
+The precedence graph now has the cycle `T1 -> T2 -> T1`, so this schedule is **NOT conflict serializable**.
+
+```
+       T1 ------> T2
+        \________/
+          (cycle)
 ```
 
 *Find it in the slides:* Lecture 11, slides 18-33.
@@ -512,7 +536,7 @@ Example precedence cycle (NOT conflict serializable):
 
 | Property | Rule | What it prevents |
 |---|---|---|
-| **Recoverable** | If `Tj` reads a value written by `Ti`, then `Tj` commits **after** `Ti` commits. | Committing on top of an uncommitted write that later aborts (would violate D). |
+| **Recoverable** | If `Tj` reads a value written by `Ti`, then `Tj` commits **after** `Ti` commits. | The need to roll back an already-committed transaction (which would violate Atomicity / Durability). |
 | **Cascadeless (ACA)** | A transaction may only read values written by **committed** transactions. | Cascading rollbacks (one abort triggers many). |
 | **Strict** | A value written by `Ti` cannot be read **or overwritten** by any other transaction until `Ti` commits or aborts. | Anything that complicates undo by before-image. |
 
@@ -636,14 +660,18 @@ Because partitions in a real network are unavoidable, the practical choice is **
 - **AP** systems sacrifice consistency during a partition (return possibly stale data, reconcile later). Examples: DynamoDB, Cassandra (tunable), CouchDB.
 
 ```
-                        C
-                       / \
-                      /   \
-              CP --- /     \ --- AP
-                    /       \
-                   A --------- P
-            "always available" "tolerates partitions"
+              C (Consistency)
+              / \
+       "CA"  /   \  "CP"           Each edge label = the pair the system keeps;
+            /     \                the third property is sacrificed during a partition.
+           /       \               CA  : no partitions allowed (fragile in real networks)
+          A---------P              CP  : refuses some requests to stay consistent
+   (Availability) (Partition       AP  : returns stale data, reconciles later
+                  tolerance)
+              "AP"
 ```
+
+Because partitions in a real network are unavoidable, **CA is rarely a real choice**; pick **CP** or **AP**.
 
 *Find it in the slides:* Lecture 10, slide 75; Lecture 11, slides 51.
 
@@ -787,11 +815,12 @@ MATCH (a:Person)-[:ACTED_IN]->(m:Movie)
 RETURN a.name, m.title
 ```
 
-- **Movies an actor co-starred in (recommendations / second-degree).**
+- **Co-stars of an actor (recommendations / second-degree).** The `WHERE co <> me` clause excludes the actor themselves from the result.
 
 ```cypher
 MATCH (me:Person {name:"Tom Hanks"})-[:ACTED_IN]->(m:Movie)
       <-[:ACTED_IN]-(co:Person)
+WHERE co <> me
 RETURN co.name, count(m) AS shared
 ORDER BY shared DESC
 ```
@@ -879,28 +908,36 @@ RETURN length(p)/2 AS bacon_number
 - **Dimension tables.** Wide, descriptive, slowly changing tables that describe the **context** of facts (`customer`, `product`, `date`, `store`).
 
 ```
-        +-----------+
-        | dim_date  |
-        +-----------+
-              |
-              v
-+---------+   +---------+   +-----------+
-| dim_cust|-->| FACT    |<--| dim_product|
-+---------+   | sales   |   +-----------+
-              +---------+
-                    ^
-                    |
-              +---------+
-              | dim_store|
-              +---------+
+                +-----------+
+                | dim_date  |
+                +-----------+
+                      ^
+                      |  FK: date_id
+                      |
++----------+    +-----+-----+    +-------------+
+| dim_cust |<---| FACT      |--->| dim_product |
++----------+    | sales     |    +-------------+
+   FK:          +-----+-----+        FK:
+   customer_id        |              product_id
+                      |  FK: store_id
+                      v
+                +-----------+
+                | dim_store |
+                +-----------+
 ```
+
+(Arrows point from the fact table to each dimension, the direction of the foreign-key reference.)
 
 **Example for a sales warehouse.**
 
-- One **fact**: `fact_sales(sale_id, date_id, customer_id, product_id, store_id, quantity, amount)`.
-- Two **dimensions**: `dim_customer(customer_id, name, segment, country)`, `dim_product(product_id, name, category, brand)`.
+- One **fact**: `fact_sales(sale_id, date_id, customer_id, product_id, store_id, quantity, amount)`. Surrogate `sale_id` plus four FK columns and two additive measures.
+- Four **dimensions** (the sample-question pattern only asks for two; here are all four for completeness):
+  - `dim_customer(customer_id, name, segment, country)`
+  - `dim_product(product_id, name, category, brand)`
+  - `dim_date(date_id, day, month, quarter, year)`
+  - `dim_store(store_id, store_name, city, region, country)`
 
-**Why useful for analytics.** All analytic queries reduce to "select measures from fact, group by dimension attributes" - a tractable shape that columnar engines optimize aggressively. The schema is **wide and denormalized on purpose** (denormalization for read speed; see 1.10).
+**Why useful for analytics.** Most analytic queries reduce to "select measures from fact, group by dimension attributes" - a tractable shape that columnar engines optimize aggressively. The schema is **wide and denormalized on purpose** (denormalization for read speed; see 1.10).
 
 **Snowflake schema** - dimensions are themselves normalized into sub-dimensions. Saves space; costs join effort. Star is preferred unless dimension cardinality is enormous.
 
@@ -911,15 +948,19 @@ RETURN length(p)/2 AS bacon_number
 **Definition.** **OLAP** (Online Analytical Processing) views the fact table as a multi-dimensional **data cube**. Each axis is a dimension; each cell is the aggregated measure for that combination of dimension values.
 
 ```
-        product
+       product
           ^
-          |    +-----+-----+-----+
-          |   /     /     /     /|
-          |  +-----+-----+-----+ |
-          | /     /     /     /| +
-          |+-----+-----+-----+ |/
-          |  date  ----+----->
-          +---------------------> store
+          |     +---+---+---+
+          |    /   /   /   /|
+          |   +---+---+---+ |     each cell of the cube holds an
+          |   |   |   |   | +     aggregated measure (sum, avg, ...)
+          |   +---+---+---+/      for one (product, date, store) cell
+          |
+          +---------------> date
+         /
+        /
+       v
+     store
 ```
 
 **Five OLAP operators.**
@@ -1245,12 +1286,16 @@ Scan these in the last minutes before the exam.
 
 ## B.7 Isolation levels
 
+`P` = anomaly **possible** at this level. `-` = **prevented**.
+
 | Level | Dirty | Non-repeatable | Phantom |
 |---|---|---|---|
-| RU  | Y | Y | Y |
-| RC  | N | Y | Y |
-| RR  | N | N | Y (gap-locked in MySQL InnoDB) |
-| SER | N | N | N |
+| READ UNCOMMITTED | P | P | P |
+| READ COMMITTED   | - | P | P |
+| REPEATABLE READ  | - | - | P (per SQL standard; MySQL InnoDB blocks via gap locks) |
+| SERIALIZABLE     | - | - | - |
+
+Snapshot isolation (Oracle, older Postgres) prevents all three but allows **write skew**.
 
 ## B.8 Deadlock
 
