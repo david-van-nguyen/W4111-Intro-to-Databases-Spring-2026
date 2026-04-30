@@ -1,0 +1,2320 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R 34 0 R 36 0 R 38 0 R 40 0 R 42 0 R 44 0 R 46 0 R] /Count 21 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Length 3647 >>
+stream
+q
+BT
+0.05 0.12 0.22 rg
+/F2 22.0 Tf
+1 0 0 1 54.0 738.0 Tm
+(Exam3StudyGuideGPT) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 711.0 m 558.0 711.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 696.0 Tm
+(W4111 Introduction to Databases, Spring 2026. Open-book study sheet for Exam 3.) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 678.0 Tm
+(Scope used for this guide: normalization from Lecture 6; all in-scope material from Lectures 9, 10, 11, and) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 665.0 Tm
+(the Lecture 12 REST/web applications deck; the sample questions are treated as non-exhaustive examples) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 652.0 Tm
+(of question style.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 631.0 Tm
+(Source slide decks:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 611.0 Tm
+(- Lecture 6:) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 598.0 Tm
+(  Lectures/Lecture_06/W4111-2026-01-Lecture-6-ER-Relational-SQL-5-REST-Normalization-v1.pdf) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 585.0 Tm
+(- Lecture 9: Lectures/Lecture_09/W4111-2026-01-Lecture-09-Module-II-NoSQL-3-v1.pdf) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 572.0 Tm
+(- Lecture 10: Lectures/Lecture_10/W4111-2026-01-Lecture-10-Module-II-4-v1.pdf) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 559.0 Tm
+(- Lecture 11: Lectures/Lecture_11/W4111-2026-01-Lecture-11-Module-II-4-v1.pdf) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 546.0 Tm
+(- Lecture 12: Lectures/Lecture_12/Lecture-12-Module IV, REST, web applications-V2.pdf) Tj
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 524.0 Tm
+(Table of Contents) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 504.0 m 558.0 504.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 489.0 Tm
+(- Exam Answer Strategy and Topic Map - source: sample questions plus all listed decks; guide PDF page 2) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 476.0 Tm
+(- Normalization, Functional Dependencies, and Keys - source: Lecture 6 slides 49-76; guide PDF page 3) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 463.0 Tm
+(- Query Processing, Selection, and Join Algorithms - source: Lecture 9 slides 11-52; guide PDF page 5) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 450.0 Tm
+(- Query Optimization and Evaluation Plans - source: Lecture 9 slides 53-78; Lecture 10 slides 8-33; guide) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 437.0 Tm
+(  PDF page 7) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 424.0 Tm
+(- NoSQL, MongoDB, Neo4j, and Graph Thinking - source: Lecture 9 slides 79-101; guide PDF page 9) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 411.0 Tm
+(- Transactions, ACID, Logging, and Recovery - source: Lecture 10 slides 34-56; Lecture 11 slides 10-16;) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 398.0 Tm
+(  guide PDF page 11) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 385.0 Tm
+(- Serializability, Schedules, and Isolation Levels - source: Lecture 10 slides 57-69; Lecture 11 slides) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 372.0 Tm
+(  17-44; guide PDF page 13) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 359.0 Tm
+(- Locking, Strict 2PL, and Deadlocks - source: Lecture 11 slides 37-44; Lecture 12 slides 7-20; guide PDF) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 346.0 Tm
+(  page 15) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 333.0 Tm
+(- ACID vs BASE, CAP, Scalability, and Replication - source: Lecture 10 slides 70-79; Lecture 11 slides 45-54;) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 320.0 Tm
+(  guide PDF page 16) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 307.0 Tm
+(- Big Data, Data Warehousing, Star Schema, OLAP, ETL/ELT, MapReduce, Spark - source: Lecture 11 slides) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 294.0 Tm
+(  55-77; Lecture 12 slides 21-56 and 69-71; guide PDF page 18) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 281.0 Tm
+(- REST and Resource-Oriented Design - source: Lecture 9 slides 102-113; Lecture 10 slides 80-92; Lecture) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 268.0 Tm
+(  11 slides 78-90; Lecture 12 slides 57-67 and 73-75; guide PDF page 20) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 1) Tj
+ET
+Q
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 3993 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Exam Answer Strategy and Topic Map) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: exam-3-sample-questions.md plus all in-scope lecture decks. Guide PDF page 2.) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 676.0 Tm
+(Use this sheet as a lookup map. For written answers, give the definition, the rule/test, and the) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 663.0 Tm
+(consequence. For data examples, cite specific tuple pairs or schedule conflicts.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 642.0 Tm
+(High-probability reasoning patterns:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 622.0 Tm
+(- Functional dependency from data: X -> Y holds in the shown instance if every pair of tuples with the) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 609.0 Tm
+(  same X values also has the same Y values. It fails if one counterexample pair has same X and) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 596.0 Tm
+(  different Y.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 583.0 Tm
+(- Candidate key: compute attribute closure. K is a candidate key if K+ contains all attributes and no) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 570.0 Tm
+(  proper subset of K is also a superkey.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 557.0 Tm
+(- Normal form answer: list candidate keys, identify prime attributes, test each non-trivial FD against) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 544.0 Tm
+(  BCNF/3NF rules, then decompose if needed.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 531.0 Tm
+(- Query plan answer: distinguish logical equivalence from physical implementation. The best local) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 518.0 Tm
+(  operator can be bad globally if it destroys useful ordering or prevents pipelining.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 505.0 Tm
+(- Join answer: state preconditions first: index available, equi-join/natural join, sorted inputs, relation) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 492.0 Tm
+(  sizes, memory.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 479.0 Tm
+(- Transaction answer: identify which ACID property is at risk, then name the DBMS mechanism:) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 466.0 Tm
+(  logging/WAL/recovery, locks/2PL, isolation level, or rollback.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 453.0 Tm
+(- Concurrency answer: define the schedule property, then explain with conflicts, precedence graph) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 440.0 Tm
+(  cycles, lock rules, or wait-for graph cycles.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 427.0 Tm
+(- Distributed/scaling answer: name the tradeoff. Scale-out and high availability often weaken immediate) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 414.0 Tm
+(  consistency or make joins/constraints harder.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 401.0 Tm
+(- REST answer: model resources and collections first, then map HTTP methods to CRUD.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 388.0 Tm
+(- Data warehouse answer: fact table stores measurements/events; dimension tables describe analysis) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 375.0 Tm
+(  axes; OLAP operations aggregate/slice/pivot/drill.) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 357.0 Tm
+(Mini-map from sample questions to guide pages:) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 339.0 Tm
+(- Q1-Q2: FDs, keys, 3NF/BCNF - page 3.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 326.0 Tm
+(- Q3-Q8: join algorithms, indexes, materialization, plans, conjunction/disjunction - pages 5-7.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 313.0 Tm
+(- Q9-Q16, Q19: transactions, isolation, serializability, rollback, 2PL, deadlocks - pages 11-15.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 300.0 Tm
+(- Q11, Q13: BASE, CAP, scale-up/scale-out, shared nothing - page 16.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 287.0 Tm
+(- Q17: REST resources/endpoints - page 20.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 274.0 Tm
+(- Q18, Q20: ETL/ELT, data engineering, star schema - page 18.) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 256.0 Tm
+(Open-book tactic: if a question says "briefly justify," include the exact counterexample, conflict edge, or) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 243.0 Tm
+(normal-form rule. Definitions alone usually leave points on the table.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 2) Tj
+ET
+Q
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 4593 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Normalization, Functional Dependencies, and Keys) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 6 slides 49-76. Guide PDF page 3.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Why normalization exists:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- Bad wide schemas repeat facts and create update anomalies. Example: if dept_name -> building,budget,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(  storing department facts in every faculty row means one bad update can make one department) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(  appear to be in two buildings.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(- Normalization asks whether a relation is in "good" form. If not, decompose into smaller relations that) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 601.0 Tm
+(  are good, lossless, and preferably dependency preserving.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 588.0 Tm
+(- Denormalization can be chosen for performance, but it trades faster reads for extra storage, update) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 575.0 Tm
+(  work, and possible inconsistency. Materialized views are a managed denormalization pattern.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 554.0 Tm
+(Functional dependencies:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- alpha -> beta means any two legal tuples that agree on all attributes in alpha must agree on all) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(  attributes in beta.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(- An FD is trivial if beta is a subset of alpha.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 495.0 Tm
+(- A shown instance can accidentally satisfy an FD that does not hold for all legal instances. For exam) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 482.0 Tm
+(  questions that say "based only on data shown," use only the tuple evidence.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 469.0 Tm
+(- Closure F+ is every FD logically implied by F. Attribute closure X+ is every attribute determined by X) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 456.0 Tm
+(  under F.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 435.0 Tm
+(Keys:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(- Superkey: K -> R, meaning K+ contains all attributes of relation R.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(- Candidate key: a minimal superkey. Remove any attribute from K, and it should no longer determine all) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(  attributes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 376.0 Tm
+(- Prime attribute: an attribute contained in at least one candidate key.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 355.0 Tm
+(Fast closure algorithm:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(1. Start with X+ = X.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 322.0 Tm
+(2. Repeatedly apply any FD A -> B where A is contained in X+; add B to X+.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 309.0 Tm
+(3. Stop when no more attributes can be added.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 296.0 Tm
+(4. If X+ contains every attribute, X is a superkey. Check minimality for candidate key.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 275.0 Tm
+(Normal forms:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 255.0 Tm
+(- 1NF: values are atomic; no repeating groups or multi-valued cells.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 242.0 Tm
+(- 2NF: 1NF plus no partial dependency of a non-key attribute on part of a composite key.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 229.0 Tm
+(- 3NF: for every non-trivial alpha -> beta in F+, either alpha is a superkey, or each attribute in beta -) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 216.0 Tm
+(  alpha is prime.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 203.0 Tm
+(- BCNF: for every non-trivial alpha -> beta in F+, alpha must be a superkey. BCNF is stricter than 3NF.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 190.0 Tm
+(- If a relation is in BCNF, it is in 3NF. A relation can be in 3NF but not BCNF when the dependent attribute) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 177.0 Tm
+(  is prime.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 156.0 Tm
+(Decomposition:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 136.0 Tm
+(- Lossless decomposition: joining decomposed relations recreates the original relation without spurious) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 123.0 Tm
+(  tuples.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 110.0 Tm
+(- Dependency preserving: constraints can be enforced by checking the decomposed relations) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 97.0 Tm
+(  independently.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 84.0 Tm
+(- BCNF decomposition for violating alpha -> beta: replace R with \(alpha union beta\) and \(R - \(beta -) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 71.0 Tm
+(  alpha\)\).) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 3) Tj
+ET
+Q
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 913 >>
+stream
+q
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 738.0 Tm
+(- BCNF may sacrifice dependency preservation. 3NF can always preserve losslessness and dependency) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 725.0 Tm
+(  preservation, but may allow some redundancy.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 704.0 Tm
+(Exam template for 3NF vs BCNF:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 684.0 Tm
+(- Find candidate keys.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 671.0 Tm
+(- Mark prime attributes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 658.0 Tm
+(- For each FD, ask: is left side a superkey? If yes, OK for both 3NF and BCNF.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 645.0 Tm
+(- If not, BCNF fails. 3NF passes only if every right-side attribute not already on left is prime.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 632.0 Tm
+(- If decomposing to BCNF, use the violating FD and show resulting schemas.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 4) Tj
+ET
+Q
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 11 0 R >>
+endobj
+13 0 obj
+<< /Length 4800 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Query Processing, Selection, and Join Algorithms) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 9 slides 11-52. Guide PDF page 5.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Query processing pipeline:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- Parser/translator checks syntax and converts SQL to a logical plan tree.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- Optimizer rewrites the logical plan and chooses physical algorithms.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- Engine executes the chosen evaluation plan, sometimes adapting based on indexes or runtime details.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(- Basic steps: parsing/translation, optimization, evaluation.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 593.0 Tm
+(Selection and index intuition:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 573.0 Tm
+(- Full scan: check every block/tuple. Rough order: O\(N\).) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- B+ tree index lookup: traverse tree height, roughly O\(log N\), plus data fetches.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- Hash lookup: roughly O\(1\) for equality, plus data fetches.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Index scan helps only if the predicate uses the index search key.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(- Secondary index on a non-key equality can be expensive if many matching records live on different) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(  blocks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 495.0 Tm
+(- Range predicates may or may not benefit from an index. If many records qualify, a scan can be) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 482.0 Tm
+(  cheaper than many random I/Os.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 461.0 Tm
+(Conjunction vs disjunction:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- name='Smith' AND dept_name='CS' can use an index on name, fetch matching rows, then test) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(  dept_name in memory.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(- name='Smith' OR dept_name='CS' cannot be solved by the name index alone if there is no index on) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(  dept_name; the engine still must find rows matching the unindexed side.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(- For conjunctions, use the most selective useful index first. For disjunctions, index-union works only if) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 376.0 Tm
+(  all disjuncts have useful indexes; otherwise scan.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 355.0 Tm
+(Join algorithms:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(- Nested-loop join: for each tuple/block in outer relation, scan/probe the inner relation. Works for any) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 322.0 Tm
+(  join condition and needs no index, but can be very expensive.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 309.0 Tm
+(- Block nested-loop join: improves nested loop by processing blocks; good when memory can hold useful) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 296.0 Tm
+(  chunks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 283.0 Tm
+(- Indexed nested-loop join: for each outer tuple, use an index on the inner join attribute. Best when join) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 270.0 Tm
+(  is equi/natural and the inner relation has a useful index. If both sides are indexed, make the relation) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 257.0 Tm
+(  with fewer tuples the outer.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 244.0 Tm
+(- Merge join: sort both relations on join attributes, then merge. Best for equi/natural joins when) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 231.0 Tm
+(  inputs are already sorted or sorted output is useful later.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 218.0 Tm
+(- Hash join: partition both relations by hash of join attributes, build an in-memory hash table on the) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 205.0 Tm
+(  build input, then probe. Best for large equi/natural joins when partitions fit memory.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 184.0 Tm
+(Outer vs inner in nested-loop join:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 164.0 Tm
+(- The outer relation drives how many times the inner relation is scanned/probed.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 151.0 Tm
+(- With indexed nested-loop, choose the smaller relation as outer when the inner has an index; example:) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 138.0 Tm
+(  1,000 rows in R, 1,000,000 rows in S, index on S.join_attr -> use indexed nested-loop with R outer and) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 125.0 Tm
+(  S inner.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 112.0 Tm
+(- Without indexes, buffer behavior matters. If one relation fits in memory, use it where it avoids) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 99.0 Tm
+(  repeated I/O.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 78.0 Tm
+(Other operations:) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 5) Tj
+ET
+Q
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 13 0 R >>
+endobj
+15 0 obj
+<< /Length 1467 >>
+stream
+q
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 738.0 Tm
+(- Duplicate elimination: sorting or hashing groups duplicates together.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 725.0 Tm
+(- Projection: project desired attributes, then eliminate duplicates if SQL semantics require it.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 712.0 Tm
+(- Aggregation: sorting or hashing groups tuples; partial aggregation can maintain count/min/max/sum) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 699.0 Tm
+(  and combine later. For average, keep sum and count.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 678.0 Tm
+(Materialization vs pipelining:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 658.0 Tm
+(- Materialization stores intermediate results before parent operations read them. It is always) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 645.0 Tm
+(  applicable but writes/reads temporary data.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 632.0 Tm
+(- Pipelining passes tuples directly from one operator to the next. It can avoid temporary disk I/O but) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 619.0 Tm
+(  not every operator can stream results.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 606.0 Tm
+(- Sort and hash join often block pipelining because they need significant input before producing output.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 593.0 Tm
+(- Demand-driven pipeline: parent calls next\(\) on child iterators. Producer-driven pipeline: child pushes) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 580.0 Tm
+(  tuples into buffers.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 6) Tj
+ET
+Q
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 15 0 R >>
+endobj
+17 0 obj
+<< /Length 4675 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Query Optimization and Evaluation Plans) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 9 slides 53-78; Lecture 10 slides 8-33. Guide PDF page 7.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Core idea:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- A logical query can have many equivalent relational algebra expressions.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- Each expression can have many physical implementations.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- An evaluation plan specifies the physical algorithm for each operation and how operations are) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(  coordinated.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 601.0 Tm
+(- Cost-based optimization: generate equivalent expressions, annotate with physical plans, estimate cost) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 588.0 Tm
+(  from catalog statistics, choose the cheapest estimated plan.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 567.0 Tm
+(Important statistics:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- Number of tuples and blocks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Tuple size.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(- Number of distinct values for attributes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(- Selectivity of predicates.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 495.0 Tm
+(- Estimated size of intermediate results.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 474.0 Tm
+(Common rewrite rules:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 454.0 Tm
+(- Split conjunctions: sigma\(a AND b\)\(E\) can become sigma\(a\)\(sigma\(b\)\(E\)\).) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- Selection is commutative: apply the more selective predicate first when useful.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(- Consecutive projections can collapse to the final needed attribute list.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(- Selection plus Cartesian product can become a theta join.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(- Joins are commutative and associative for inner/natural joins, enabling join reordering.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(- Push selections below joins when the predicate references only one side.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 376.0 Tm
+(- Push projections below joins when you keep the needed output attributes plus join attributes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 363.0 Tm
+(- Union/intersection are commutative/associative; difference is not commutative.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 350.0 Tm
+(- Outer joins do not obey all inner join rules. Be careful: outer joins are not generally associative, and) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 337.0 Tm
+(  some selection rewrites change null-preserving behavior.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 316.0 Tm
+(Optimization heuristics:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 296.0 Tm
+(- Push selections early to reduce relation sizes before joins.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 283.0 Tm
+(- Push projections early to reduce tuple width, but keep join/grouping attributes needed later.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 270.0 Tm
+(- Join smaller/selective intermediate results first.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 257.0 Tm
+(- Choose access paths using indexes only when selectivity makes them cheaper than scans.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 244.0 Tm
+(- Preserve useful order when a later merge join, grouping, or order-by can benefit.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 223.0 Tm
+(Why local optimum can be globally bad:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 203.0 Tm
+(- Hash join may be cheapest for one join, but merge join may output sorted data that saves a later) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 190.0 Tm
+(  sort.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 177.0 Tm
+(- Nested-loop may be locally slower but allows pipelining.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 164.0 Tm
+(- A very selective index lookup can be best for one predicate, but a different predicate may produce an) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 151.0 Tm
+(  intermediate result that makes the whole plan cheaper.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 130.0 Tm
+(Logical vs physical example:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 110.0 Tm
+(- pi_name\(sigma_salary<75000\(instructor\)\) and sigma_salary<75000\(pi_name,salary\(instructor\)\) are) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 97.0 Tm
+(  logically equivalent if salary is retained for the selection.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 84.0 Tm
+(- Usually select before project/join when selection reduces rows. Usually project before join when) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 71.0 Tm
+(  projection reduces tuple width but keeps required columns.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 7) Tj
+ET
+Q
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 17 0 R >>
+endobj
+19 0 obj
+<< /Length 971 >>
+stream
+q
+BT
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 730.0 Tm
+(EXPLAIN:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 710.0 Tm
+(- DBMSs expose selected plans with EXPLAIN or related commands.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 697.0 Tm
+(- PostgreSQL-style costs can show first-tuple cost and all-results cost.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 684.0 Tm
+(- EXPLAIN ANALYZE includes actual runtime statistics, not only estimates.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 663.0 Tm
+(Join-order dynamic programming:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 643.0 Tm
+(- Best plan for a set of relations is built from best plans for subsets.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 630.0 Tm
+(- For each split of relation set S into S1 and S-S1, compare join algorithms and keep the cheapest.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 617.0 Tm
+(- Avoid enumerating every possible tree naively because equivalent-expression space is large.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 8) Tj
+ET
+Q
+endstream
+endobj
+20 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 19 0 R >>
+endobj
+21 0 obj
+<< /Length 4443 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(NoSQL, MongoDB, Neo4j, and Graph Thinking) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 9 slides 79-101. Guide PDF page 9.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(NoSQL classifications from the lecture:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- Relational is the foundational model.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- NoSQL families include document stores, key-value stores, column-family/wide-column stores, and) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(  graph databases.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(- The point is not "NoSQL replaces SQL"; it is that different data/access patterns benefit from) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 601.0 Tm
+(  different models.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 580.0 Tm
+(MongoDB concepts:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- RDBMS database -> MongoDB database.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- Table -> collection.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Row/tuple -> document.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(- Column -> field.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(- Join -> often embedded documents, references, or aggregation pipeline operations such as $lookup.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 495.0 Tm
+(- Primary key -> _id by default.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 482.0 Tm
+(- Server/tool/API examples: mongod, Compass, pymongo.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 461.0 Tm
+(MongoDB operations:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- Create: insertOne\(\), insertMany\(\); in pymongo, names use snake case such as insert_one\(\).) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(- Retrieve: find\(\), findOne\(\) / find_one\(\).) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(- Update: updateOne\(\), updateMany\(\), replaceOne\(\).) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(- Delete: deleteOne\(\), deleteMany\(\).) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(- find\(\) generally takes a filter expression and a projection expression.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 376.0 Tm
+(- find\(\) returns a cursor/iterable, not just a single row.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 363.0 Tm
+(- Projection on nested arrays can return more than expected; matching a document does not) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 350.0 Tm
+(  automatically trim nested array elements to only matching sub-elements.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 337.0 Tm
+(- Aggregation pipeline operators mentioned include match, lookup, union, merge, sample, and related) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 324.0 Tm
+(  pipeline stages.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 311.0 Tm
+(- MongoDB also has indexes, replication, sharding, and embedded MapReduce support.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 290.0 Tm
+(MongoDB exam style:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 270.0 Tm
+(- Filter: "which documents?" Projection: "which fields?") Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 257.0 Tm
+(- Use embedded documents when data is usually read/written together and bounded.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 244.0 Tm
+(- Use references/lookup when data is large, shared, or independently updated.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 231.0 Tm
+(- Remember that document databases can avoid some joins by storing related data together.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 210.0 Tm
+(Neo4j / graph database thinking:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 190.0 Tm
+(- Graph databases model nodes and relationships directly.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 177.0 Tm
+(- Graph queries shine when the question is path-oriented: "who acted in which movies?", "which actors) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 164.0 Tm
+(  worked with both X and Y?", "how do you get from Kevin Bacon to Robert Longo?", or) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 151.0 Tm
+(  recommendation via shared relationships.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 138.0 Tm
+(- In Cypher-like thinking, match node/relationship patterns, bind variables, filter, and return results.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 125.0 Tm
+(- SQL can represent graphs with join tables, but multi-hop traversal can become join-heavy and hard to) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 112.0 Tm
+(  read.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 91.0 Tm
+(Generic Cypher pattern memory aid:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 71.0 Tm
+(- MATCH \(a:Actor\)-[:ACTED_IN]->\(m:Movie\) finds actor/movie paths.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 9) Tj
+ET
+Q
+endstream
+endobj
+22 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 21 0 R >>
+endobj
+23 0 obj
+<< /Length 460 >>
+stream
+q
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 738.0 Tm
+(- WHERE a.name = 'Tom Hanks' filters.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 725.0 Tm
+(- RETURN m.title projects output.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 712.0 Tm
+(- Variable-length paths use relationship repetitions in many graph query languages; check exact syntax) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 699.0 Tm
+(  from tutorial if needed.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 10) Tj
+ET
+Q
+endstream
+endobj
+24 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 23 0 R >>
+endobj
+25 0 obj
+<< /Length 4391 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Transactions, ACID, Logging, and Recovery) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 10 slides 34-56; Lecture 11 slides 10-16. Guide PDF page 11.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Transaction:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- A transaction is a unit of program execution that reads/writes data and should move the database) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(  from one consistent state to another.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- Example transfer: read A, subtract 50, write A, read B, add 50, write B, then commit or rollback.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 606.0 Tm
+(ACID:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 586.0 Tm
+(- Atomicity: all writes happen or none happen. If transfer fails after debiting A but before crediting B,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 573.0 Tm
+(  money is lost unless partial effects are undone.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- Consistency: a correct transaction preserves integrity constraints and application invariants, such as) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(  total A+B in a transfer.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Isolation: concurrent transactions should behave as if each transaction executes without) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(  interference from others.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(- Durability: once commit is acknowledged, changes persist despite failures.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 487.0 Tm
+(Transaction states:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 467.0 Tm
+(- Active: transaction is executing.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 454.0 Tm
+(- Partially committed: final statement executed, commit not fully durable yet.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- Failed: cannot continue normally.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(- Aborted: rolled back; may restart or be killed.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(- Committed: successful completion.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 394.0 Tm
+(DBMS subsystems for ACID:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 374.0 Tm
+(- Query processor schedules and executes operations.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 361.0 Tm
+(- Buffer manager manages block/frame reads and writes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 348.0 Tm
+(- Log manager records transaction start, update, commit, abort, checkpoint, completion.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(- Transaction manager coordinates scheduling, buffers, and logging.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 322.0 Tm
+(- Recovery manager uses log records after failures.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 301.0 Tm
+(Write-ahead logging:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 281.0 Tm
+(- Before dirty data pages are written, the log record describing the change must be forced to stable) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 268.0 Tm
+(  storage.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 255.0 Tm
+(- Redo: after crash, reapply committed changes that were logged but not reflected on disk.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 242.0 Tm
+(- Undo: roll back uncommitted changes that reached disk.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 229.0 Tm
+(- WAL makes durability and atomicity practical without forcing every data page to disk on every) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 216.0 Tm
+(  commit.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 195.0 Tm
+(ARIES recovery:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 175.0 Tm
+(- Analysis pass: identify transactions to undo and dirty pages; find redo start point.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 162.0 Tm
+(- Redo pass: repeat history from redo LSN, skipping actions already reflected on pages.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 149.0 Tm
+(- Undo pass: roll back incomplete transactions.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 128.0 Tm
+(Force/steal intuition:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 108.0 Tm
+(- Force every update to disk at commit: durable but slow.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 95.0 Tm
+(- No-force: commit can return after log is durable, while data pages are written later.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 82.0 Tm
+(- Steal: buffer manager may write uncommitted dirty pages to disk; needs undo.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 69.0 Tm
+(- No-steal: avoids uncommitted data on disk but hurts memory/buffer performance.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 11) Tj
+ET
+Q
+endstream
+endobj
+26 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 25 0 R >>
+endobj
+27 0 obj
+<< /Length 635 >>
+stream
+q
+BT
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 730.0 Tm
+(Availability and replication:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 710.0 Tm
+(- Active/passive: requests go to master; backup receives queued updates and takes over after failure.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 697.0 Tm
+(- Active/active: multiple systems process requests; consistency needs coordination such as distributed) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 684.0 Tm
+(  commit.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 671.0 Tm
+(- The more distributed the system, the more CAP/consistency tradeoffs matter.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 12) Tj
+ET
+Q
+endstream
+endobj
+28 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 27 0 R >>
+endobj
+29 0 obj
+<< /Length 4582 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Serializability, Schedules, and Isolation Levels) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 10 slides 57-69; Lecture 11 slides 17-44. Guide PDF page 13.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Why concurrency exists:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- Improves CPU/disk utilization and transaction throughput.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- Reduces average response time; short transactions need not wait behind long ones.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- Requires concurrency control to avoid destroying database consistency.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 606.0 Tm
+(Schedules:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 586.0 Tm
+(- A schedule is the chronological order of operations from concurrent transactions.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 573.0 Tm
+(- It must include all operations and preserve each transaction's internal order.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- Serial schedule: transactions run one after another.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- Serializable schedule: concurrent schedule with the same effect as some serial schedule.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Serializability is the main correctness criterion because if every transaction is correct alone, any) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(  serial-equivalent schedule is correct.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 500.0 Tm
+(Conflict serializability:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 480.0 Tm
+(- Conflicts happen when two operations from different transactions access the same item and at least) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 467.0 Tm
+(  one is a write.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 454.0 Tm
+(- Read/read does not conflict. Read/write, write/read, and write/write conflict.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- A schedule is conflict serializable if non-conflicting swaps can transform it into a serial schedule.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(- Precedence graph test: nodes are transactions; edge Ti -> Tj if Ti has a conflicting operation before Tj) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(  on the same item.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(- A schedule is conflict serializable iff the precedence graph is acyclic.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(- If acyclic, a topological ordering gives a valid serial order.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 368.0 Tm
+(View serializability:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 348.0 Tm
+(- More general than conflict serializability.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(- Preserves which transaction reads the initial value, which transaction's write each read sees, and) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 322.0 Tm
+(  final writes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 309.0 Tm
+(- Some schedules are view serializable but not conflict serializable. Conflict serializability is easier to) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 296.0 Tm
+(  test and commonly emphasized.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 275.0 Tm
+(Recoverability and cascading rollback:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 255.0 Tm
+(- Recoverable schedule: if Tj reads data written by Ti, then Ti commits before Tj commits.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 242.0 Tm
+(- Cascading rollback: one abort forces other transactions to abort because they read uncommitted data) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 229.0 Tm
+(  from the failed transaction.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 216.0 Tm
+(- Cascadeless schedule: if Tj reads data written by Ti, Ti commits before Tj reads it.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 203.0 Tm
+(- Every cascadeless schedule is recoverable.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 182.0 Tm
+(Isolation levels:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 162.0 Tm
+(- Read uncommitted: can see uncommitted data. Dirty reads can occur.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 149.0 Tm
+(- Read committed: reads only committed data, but repeated reads can return different committed) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 136.0 Tm
+(  values. Non-repeatable reads can occur.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 123.0 Tm
+(- Repeatable read: repeated reads of the same record return same value; phantoms/range anomalies can) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 110.0 Tm
+(  still occur if range locks are not used.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 97.0 Tm
+(- Serializable: equivalent to some serial execution; strongest standard level.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 76.0 Tm
+(Common anomalies:) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 13) Tj
+ET
+Q
+endstream
+endobj
+30 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 29 0 R >>
+endobj
+31 0 obj
+<< /Length 1056 >>
+stream
+q
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 738.0 Tm
+(- Dirty read: read uncommitted data from another transaction.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 725.0 Tm
+(- Non-repeatable read: same row read twice returns different values due to committed update by) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 712.0 Tm
+(  another transaction.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 699.0 Tm
+(- Phantom read: rerunning a range query returns new/deleted rows due to another transaction.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 686.0 Tm
+(- Lost update/write skew: two transactions read overlapping data and write decisions that violate) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 673.0 Tm
+(  intended constraints.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 652.0 Tm
+(Cursor note:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 632.0 Tm
+(- Isolation is often defined around what cursors have read/touched.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 619.0 Tm
+(- REST cannot rely on server-side cursor conversation state in the same way because REST is stateless.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 14) Tj
+ET
+Q
+endstream
+endobj
+32 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 31 0 R >>
+endobj
+33 0 obj
+<< /Length 4369 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Locking, Strict 2PL, and Deadlocks) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 11 slides 37-44; Lecture 12 slides 7-20. Guide PDF page 15.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Lock modes:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- Shared lock S: needed before reading; multiple transactions can hold compatible shared locks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- Exclusive lock X: needed before writing; incompatible with all other locks on the same item.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- A lock request proceeds only after the concurrency-control manager grants it.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 606.0 Tm
+(Strict two-phase locking:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 586.0 Tm
+(- Before reading, transaction gets an S lock.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 573.0 Tm
+(- Before writing, transaction gets an X lock.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- All locks are released only when the transaction completes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- If a transaction holds an X lock, no other transaction can get S or X on that object.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Strict 2PL guarantees serializable schedules and simplifies aborts by preventing other transactions) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(  from reading uncommitted writes.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 500.0 Tm
+(Non-strict 2PL:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 480.0 Tm
+(- A transaction may release locks before commit, but after releasing any lock it cannot acquire more) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 467.0 Tm
+(  locks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 454.0 Tm
+(- Also guarantees serializability, but abort/recovery is harder because cascading aborts are possible.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 433.0 Tm
+(Deadlock:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 413.0 Tm
+(- A set of transactions is deadlocked if every transaction in the set waits for another transaction in) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 400.0 Tm
+(  the same set.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 387.0 Tm
+(- Example pattern: T3 holds lock on B and wants A; T4 holds lock on A and wants B.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 374.0 Tm
+(- To resolve, roll back at least one transaction and release its locks.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 353.0 Tm
+(Deadlock prevention:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 333.0 Tm
+(- Pre-declaration: require all locks before transaction begins.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 320.0 Tm
+(- Ordered locking: impose partial order on data items and acquire locks only in that order.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 307.0 Tm
+(- Wait-die: non-preemptive. Older transaction may wait for younger; younger transaction trying to wait) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 294.0 Tm
+(  for older is rolled back.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 281.0 Tm
+(- Wound-wait: preemptive. Older transaction forces rollback of younger; younger waits for older.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 268.0 Tm
+(- Timeout: wait only a fixed time, then rollback. Simple but can abort transactions unnecessarily and can) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 255.0 Tm
+(  cause starvation.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 242.0 Tm
+(- Restart rolled-back transactions with original timestamp to avoid starvation in timestamp schemes.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 221.0 Tm
+(Deadlock detection:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 201.0 Tm
+(- Wait-for graph nodes are transactions.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 188.0 Tm
+(- Edge Ti -> Tj means Ti waits for a lock held incompatibly by Tj.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 175.0 Tm
+(- Cycle in wait-for graph means deadlock.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 162.0 Tm
+(- Detection runs periodically; then pick a victim.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 141.0 Tm
+(Deadlock recovery:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 121.0 Tm
+(- Victim selection tries to minimize cost.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 108.0 Tm
+(- Total rollback aborts and restarts victim.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 95.0 Tm
+(- Partial rollback rolls back only far enough to release needed locks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 82.0 Tm
+(- Avoid starvation by not repeatedly selecting the same or oldest transaction as victim.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 15) Tj
+ET
+Q
+endstream
+endobj
+34 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 33 0 R >>
+endobj
+35 0 obj
+<< /Length 4650 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(ACID vs BASE, CAP, Scalability, and Replication) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 10 slides 70-79; Lecture 11 slides 45-54. Guide PDF page 16.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Eventual consistency:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- If no new updates are made, eventually all reads return the last updated value.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- Used to improve availability and scalability in distributed systems.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- The system converges after asynchronous propagation and conflict handling.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(- Strong consistency across replicas requires coordination, locking, or distributed transactions, which) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 601.0 Tm
+(  becomes hard during failures/partitions.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 580.0 Tm
+(BASE:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- Basically Available: reads/writes are available as much as possible, often across cluster nodes, without) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(  strong immediate consistency guarantees.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- Soft state: the system state may be changing or uncertain while replicas converge.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(- Eventual consistency: after enough time without new writes, reads converge to expected state.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(- BASE trades immediate consistency for availability, performance, and scale.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 487.0 Tm
+(ACID vs BASE:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 467.0 Tm
+(- ACID emphasizes correctness of transactional updates: all-or-nothing, consistent state transitions,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 454.0 Tm
+(  isolation, durability.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- BASE emphasizes availability and convergence in distributed systems.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(- Prefer ACID for money movement, inventory correctness, constraints, and operations where) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(  anomalies are unacceptable.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(- Prefer BASE/eventual consistency for large-scale read-heavy systems, replicated web services, feeds,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(  caches, or conflicts that can be reconciled later.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 368.0 Tm
+(CAP theorem:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 348.0 Tm
+(- Consistency: every read receives the most recent write or an error.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(- Availability: every request receives a non-error response, without a guarantee that it is the latest) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 322.0 Tm
+(  value.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 309.0 Tm
+(- Partition tolerance: system continues despite dropped or delayed network messages between nodes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 296.0 Tm
+(- In practical distributed systems, partitions/failures happen, so designs must choose how to balance) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 283.0 Tm
+(  consistency and availability.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 262.0 Tm
+(Scale-up vs scale-out:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 242.0 Tm
+(- Scale-up: replace machine with bigger CPU/memory/disk. Less incremental, disruptive, expensive at) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 229.0 Tm
+(  extreme size, and does not by itself improve availability.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 216.0 Tm
+(- Scale-out: add machines. Incremental cost and supports availability via replication, but relational) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 203.0 Tm
+(  operations like joins, constraints, and referential integrity are harder across nodes.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 182.0 Tm
+(Disk/data architectures:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 162.0 Tm
+(- Shared disk: multiple DB servers share storage through NAS/SAN/RAID. Integrity requires distributed) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 149.0 Tm
+(  locking.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 136.0 Tm
+(- Shared nothing: each node owns its data partition/shard. Router sends requests to shard based on) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 123.0 Tm
+(  partition function.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 110.0 Tm
+(- Sharding: partition data by key; replication can improve availability but creates consistency tradeoffs.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 89.0 Tm
+(Why joins are hard in scale-out:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 69.0 Tm
+(- Join inputs may live on different shards.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 16) Tj
+ET
+Q
+endstream
+endobj
+36 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 35 0 R >>
+endobj
+37 0 obj
+<< /Length 415 >>
+stream
+q
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 738.0 Tm
+(- Moving data across network is expensive.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 725.0 Tm
+(- Distributed locking/transactions are complex.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 712.0 Tm
+(- Denormalization, embedding, precomputed views, or application-side reconciliation may be used instead.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 17) Tj
+ET
+Q
+endstream
+endobj
+38 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 37 0 R >>
+endobj
+39 0 obj
+<< /Length 4686 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(Big Data, Data Warehousing, Star Schema, OLAP, ETL/ELT, MapReduce, Spark) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 11 slides 55-77; Lecture 12 slides 21-56 and 69-71. Guide PDF page 18.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 673.0 Tm
+(Big data and data engineering:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(- Data engineering is often most of the hard work before analytics/AI: gathering, cleaning,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(  transforming, integrating, and loading analyzable data.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- Common analytics flow: gather data from sources, integrate into a common schema, generate) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(  aggregates/reports, analyze interactively with OLAP/statistics, build predictive models.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 601.0 Tm
+(- 5 V's often associated with big data: volume, velocity, variety, veracity, value.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 580.0 Tm
+(Data warehouse vs data lake:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 560.0 Tm
+(- Data warehouse: integrated, curated, schema-oriented store for analysis and reporting.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- Data lake: stores raw or semi-structured data for later processing; often cheaper/flexible but needs) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(  governance.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 513.0 Tm
+(ETL vs ELT:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 493.0 Tm
+(- ETL: extract from sources, transform into target schema, then load into warehouse.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 480.0 Tm
+(- ELT: extract, load raw-ish data first, then transform inside the target platform.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 467.0 Tm
+(- ETL is useful when target requires clean structured data before loading. ELT is common when the) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 454.0 Tm
+(  target system has scalable processing.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 433.0 Tm
+(Star schema:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 413.0 Tm
+(- Fact table: records events/measurements, often numeric facts such as quantityOrdered, priceEach,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 400.0 Tm
+(  revenue.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 387.0 Tm
+(- Dimension tables: describe axes for analysis, such as date, location, product, customer.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 374.0 Tm
+(- Star schema is useful because analytics asks aggregations by dimensions, such as sales by country,) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 361.0 Tm
+(  product line, and year.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 348.0 Tm
+(- Lecture 12 Classicmodels example: facts are quantity ordered, price each, revenue; dimensions include) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(  location, date, and product.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 314.0 Tm
+(OLAP:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 294.0 Tm
+(- Online Analytical Processing: interactive analysis that summarizes and views data in different ways.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 281.0 Tm
+(- Data cube: multidimensional generalization of a cross-tab.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 268.0 Tm
+(- Slice: fix one dimension value.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 255.0 Tm
+(- Dice: fix multiple dimension values or select a subcube.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 242.0 Tm
+(- Roll-up: aggregate from fine detail to coarser level, such as day to month/year.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 229.0 Tm
+(- Drill-down: move from coarse aggregate to finer detail.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 216.0 Tm
+(- Pivot: change which dimensions appear as rows/columns.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 195.0 Tm
+(MapReduce:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 175.0 Tm
+(- Data-flow model with map and reduce operators running in parallel on partitions.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 162.0 Tm
+(- Good for large-scale procedural processing, web logs, keyword indexes, PageRank-like tasks.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 149.0 Tm
+(- Many computations are easier in SQL; MapReduce can be cumbersome for simple queries.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 136.0 Tm
+(- Relational operations can be translated to MapReduce, and modern engines support joins/aggregations) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 123.0 Tm
+(  natively.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 102.0 Tm
+(Blocks and parallelism:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 82.0 Tm
+(- Normal file streams hide where records start/end and which blocks contain which records.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 69.0 Tm
+(- Databases and big-data tools expose records, blocks, block locations, and partitions so work can run in) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 18) Tj
+ET
+Q
+endstream
+endobj
+40 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 39 0 R >>
+endobj
+41 0 obj
+<< /Length 850 >>
+stream
+q
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 738.0 Tm
+(  parallel and reduce I/O.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 717.0 Tm
+(Spark / algebraic operations:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 697.0 Tm
+(- Modern engines such as Spark support trees/graphs of algebraic operators.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 684.0 Tm
+(- Relational model has a fixed closed set of operators over relations; Spark exposes RDDs/data frames) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 671.0 Tm
+(  and lets programmers define data-flow graphs and custom operators.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 658.0 Tm
+(- RDD: resilient distributed dataset, a collection of records stored across machines.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 645.0 Tm
+(- RDDs can be lazily computed from operations on other RDDs.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 19) Tj
+ET
+Q
+endstream
+endobj
+42 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 41 0 R >>
+endobj
+43 0 obj
+<< /Length 4515 >>
+stream
+q
+BT
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 729.0 Tm
+(REST and Resource-Oriented Design) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 709.0 m 558.0 709.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 54.0 694.0 Tm
+(Source: Lecture 9 slides 102-113; Lecture 10 slides 80-92; Lecture 11 slides 78-90; Lecture 12 slides 57-67) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 681.0 Tm
+(and 73-75. Guide PDF page 20.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 660.0 Tm
+(Web application stack:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 640.0 Tm
+(- Full-stack web application commonly has browser UI, microservice/application server, and database.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 627.0 Tm
+(- Web frameworks support web APIs, database access, routing, templating/session management, and) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 614.0 Tm
+(  code reuse.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 601.0 Tm
+(- OpenAPI describes, produces, consumes, and visualizes machine-readable service APIs.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 588.0 Tm
+(- FastAPI routers structure APIs into route groups; other frameworks use similar concepts.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 567.0 Tm
+(REST:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 547.0 Tm
+(- REST means Representational State Transfer.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 534.0 Tm
+(- REST is an architectural style for stateless, reliable web-based applications.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 521.0 Tm
+(- Important constraints: client-server separation, stateless requests, cacheable responses, uniform) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 508.0 Tm
+(  interface, layered system, optional code-on-demand.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 495.0 Tm
+(- Stateless means each request contains enough information for the server to understand it; server) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 482.0 Tm
+(  should not rely on hidden conversation state.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 461.0 Tm
+(Resources and collections:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 441.0 Tm
+(- Resource: an abstract thing with state and possibly sub-resources.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 428.0 Tm
+(- Collection resource: a list/container of same-type resources.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 415.0 Tm
+(- Resource hierarchy can nest collections under resources, such as /courses/{id}/sections.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 402.0 Tm
+(- A REST API is not necessarily a direct database exposure. Server logic maps abstract resources to) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 389.0 Tm
+(  files, DB rows, actions, or workflows.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 368.0 Tm
+(Methods:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 348.0 Tm
+(- POST: create a resource, often under a collection.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 335.0 Tm
+(- GET: retrieve a resource or collection.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 322.0 Tm
+(- PUT: update/replace a resource.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 309.0 Tm
+(- DELETE: delete a resource.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 296.0 Tm
+(- REST emphasizes many resources with a small fixed method set instead of many custom verbs like) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 283.0 Tm
+(  openAccount\(\) or deposit\(\).) Tj
+/F1 10.2 Tf
+1 0 0 1 54.0 265.0 Tm
+(URLs, content types, and query parameters:) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 247.0 Tm
+(- Relative URL identifies the resource.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 234.0 Tm
+(- Content types include text/html and application/json; Accept headers specify desired response type.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 221.0 Tm
+(- Collection GET requests may use query parameters, e.g. /customers?country=France&city=Paris.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 208.0 Tm
+(- Server translates query parameters into filtering logic, such as SQL WHERE predicates.) Tj
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 187.0 Tm
+(Endpoint design templates:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 167.0 Tm
+(- Base collection: /courses supports GET, POST.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 154.0 Tm
+(- Single resource: /courses/{course_id} supports GET, PUT, DELETE.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 141.0 Tm
+(- Nested collection: /courses/{course_id}/sections retrieves/creates sections for a course.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 128.0 Tm
+(- Nested collection for exam sample: /sections/{section_id}/participants retrieves participants in a) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 115.0 Tm
+(  section.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 102.0 Tm
+(- Classicmodels-style examples from Lecture 12: /customers, /customers/{customerNumber},) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 89.0 Tm
+(  /customers/{customerNumber}/orders, /orders/{orderNumber}/orderdetails.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 20) Tj
+ET
+Q
+endstream
+endobj
+44 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 43 0 R >>
+endobj
+45 0 obj
+<< /Length 1702 >>
+stream
+q
+BT
+0.1 0.1 0.1 rg
+/F2 10.8 Tf
+1 0 0 1 54.0 738.0 Tm
+(Resource-oriented exam answer:) Tj
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 718.0 Tm
+(- First identify entity types and relationships.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 705.0 Tm
+(- Use plural nouns for collections.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 692.0 Tm
+(- Put contained resources under parent resources when navigation is natural.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 679.0 Tm
+(- Use query parameters for filtering collections.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 666.0 Tm
+(- Map methods to CRUD; do not invent verbs when an HTTP method plus resource path expresses the) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 653.0 Tm
+(  action.) Tj
+0.05 0.2 0.35 rg
+/F2 15.0 Tf
+1 0 0 1 54.0 631.0 Tm
+(Last-Minute Quick Checks) Tj
+ET
+0.65 0.65 0.65 RG
+54.0 611.0 m 558.0 611.0 l S
+BT
+0 0 0 rg
+/F1 10.2 Tf
+1 0 0 1 66.0 596.0 Tm
+(- FD question: search for counterexample pairs.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 583.0 Tm
+(- Key question: compute closure, then prove minimality.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 570.0 Tm
+(- 3NF/BCNF question: left side superkey? if not, are right-side attributes prime?) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 557.0 Tm
+(- Join question: equi-join? index? sorted? memory? relation sizes?) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 544.0 Tm
+(- Isolation question: dirty read, non-repeatable read, phantom, serializable.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 531.0 Tm
+(- Deadlock question: wait-for graph cycle.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 518.0 Tm
+(- Star schema question: facts are measurements; dimensions are analysis axes.) Tj
+/F1 10.2 Tf
+1 0 0 1 66.0 505.0 Tm
+(- REST question: resources are nouns; methods are CRUD.) Tj
+0.35 0.35 0.35 rg
+/F1 8.5 Tf
+1 0 0 1 54.0 36.0 Tm
+(Exam3StudyGuideGPT | page 21) Tj
+ET
+Q
+endstream
+endobj
+46 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 45 0 R >>
+endobj
+xref
+0 47
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000261 00000 n 
+0000000331 00000 n 
+0000000406 00000 n 
+0000004105 00000 n 
+0000004241 00000 n 
+0000008286 00000 n 
+0000008422 00000 n 
+0000013067 00000 n 
+0000013204 00000 n 
+0000014169 00000 n 
+0000014307 00000 n 
+0000019160 00000 n 
+0000019298 00000 n 
+0000020818 00000 n 
+0000020956 00000 n 
+0000025684 00000 n 
+0000025822 00000 n 
+0000026845 00000 n 
+0000026983 00000 n 
+0000031479 00000 n 
+0000031617 00000 n 
+0000032129 00000 n 
+0000032267 00000 n 
+0000036711 00000 n 
+0000036849 00000 n 
+0000037536 00000 n 
+0000037674 00000 n 
+0000042309 00000 n 
+0000042447 00000 n 
+0000043556 00000 n 
+0000043694 00000 n 
+0000048116 00000 n 
+0000048254 00000 n 
+0000052957 00000 n 
+0000053095 00000 n 
+0000053562 00000 n 
+0000053700 00000 n 
+0000058439 00000 n 
+0000058577 00000 n 
+0000059479 00000 n 
+0000059617 00000 n 
+0000064185 00000 n 
+0000064323 00000 n 
+0000066078 00000 n 
+trailer
+<< /Size 47 /Root 1 0 R >>
+startxref
+66216
+%%EOF
