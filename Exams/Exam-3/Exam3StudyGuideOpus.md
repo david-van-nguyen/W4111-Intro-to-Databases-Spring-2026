@@ -186,20 +186,24 @@ SQL text -> [Parser] -> Relational Algebra Tree
 
 **Definition.** Algorithms for evaluating `sigma_theta(R)`. Algorithm choice depends on whether `theta` matches an index and whether the file is sorted.
 
+These are the **textbook tags** used in Lecture 9 (slides 20-26). Match them exactly if a question asks "what is algorithm Ak?":
+
 | Tag | Algorithm | When it applies | Cost intuition |
 |---|---|---|---|
-| A1 | Linear / file scan | Always | O(N) blocks |
-| A2 | Binary search on sorted file | File sorted on the predicate attribute, equality or range | O(log N) + matches |
-| A3 | Primary index, equality on key | Index on key, `attr = value` | O(1) I/Os |
-| A4 | Primary index, equality on non-key | Sorted on indexed attribute | O(log N + matches) |
-| A5 | Primary index, comparison | Range on the sort key | Walk forward from boundary |
-| A6 | Secondary index, equality | Non-clustered index | One I/O per match (random) |
-| A7 | Secondary index, comparison | Range on indexed attribute | Often worse than scan if many matches |
-| A8 | Conjunction with one index | Use index for one term, filter rest | See 2.3 |
-| A9 | Conjunction with composite index | Composite index covers the AND | One lookup |
-| A10 | Disjunction (`OR`) | Union of index results, or scan | See 2.3 |
+| A1 | Linear (file) scan | Always | `b_r` block transfers; `b_r/2` if equality on a key |
+| A2 | **Clustering (primary) index, equality on key** | Index on the search key; `attr = value` returns at most one record | `(h_i + 1) * t_B`; ~`O(log N)` I/Os |
+| A3 | **Clustering index, equality on non-key** | Sorted on indexed attr; multiple matches on consecutive blocks | `h_i * t_B + t_B * b` for `b` matching blocks |
+| A4 | **Secondary index, equality (key or non-key)** | Non-clustering index; matches scattered across blocks | Single record: `(h_i + 1) * t_B`; `n` records: `(h_i + n) * t_B` (one random I/O per match) |
+| A5 | **Clustering index, comparison** (`>= v`, `<= v`) | Relation sorted on the comparison attribute | Use index to find boundary tuple, then sequential scan from there |
+| A6 | **Secondary index, comparison** | Non-clustering index, range predicate | One I/O per match; **often worse than a linear scan** if many tuples qualify |
+| A7 | **Conjunctive selection using one index** | `theta_1 AND theta_2 AND ...`; one term has a useful index | Use the most selective indexed term, fetch that candidate set, filter the rest in memory |
+| A8 | **Conjunctive selection using composite index** | A composite index covers all (or several) AND conjuncts | Single lookup against the composite key |
+| A9 | **Conjunctive selection by intersection of identifiers** | Each conjunct has an index; indexes return record pointers | Take the intersection of pointer sets, then fetch the records |
+| A10 | **Disjunctive selection by union of identifiers** | `theta_1 OR theta_2 OR ...`; **all** disjuncts have usable indexes | Take the union of pointer sets, fetch records; if **any** disjunct is unindexed, fall back to A1 (linear scan) |
 
-*Find it in the slides:* Lecture 9, slides 19-27.
+**Important note from the deck (slide 20):** binary search on a sorted file is **not** a separate algorithm here; the lecture explicitly says "binary search generally does not make sense since data is not stored consecutively" - if the file is sorted, you use A2/A5 (the clustering-index variants) instead.
+
+*Find it in the slides:* Lecture 9, slides 19-26.
 
 ## 2.3 Conjunction vs disjunction
 
@@ -571,7 +575,7 @@ The precedence graph now has the cycle `T1 -> T2 -> T1`, so this schedule is **N
 |---|---|---|---|---|
 | **READ UNCOMMITTED** | possible | possible | possible | possible |
 | **READ COMMITTED** | prevented | possible | possible | possible |
-| **REPEATABLE READ** | prevented | prevented | possible (in standard SQL; MySQL prevents it via gap locks) | write skew possible under snapshot isolation |
+| **REPEATABLE READ** | prevented | prevented | possible (range locks not managed in the lecture's description; in real MySQL InnoDB next-key/gap locks usually prevent this) | write skew possible under snapshot isolation |
 | **SERIALIZABLE** | prevented | prevented | prevented | prevented |
 
 - **Dirty read.** Read of a value written by a yet-uncommitted transaction.
@@ -648,11 +652,11 @@ T2 holds X-lock on B, requests X-lock on A
 
 ## 6.2 The CAP theorem
 
-**Definition.** In any **distributed** data system, you can guarantee at most **two** of:
+**Definition (lecture wording, Lecture 10 slide 75 / Lecture 11 slide 50).** In any **distributed** data system, you can guarantee at most **two** of:
 
-- **C**onsistency - every read sees the most recent write (linearizable).
-- **A**vailability - every request gets a response (no timeouts).
-- **P**artition tolerance - the system continues to operate despite network partitions between nodes.
+- **C**onsistency - every read receives the most recent write or an error.
+- **A**vailability - every request receives a (non-error) response, without a guarantee that it contains the most recent write.
+- **P**artition tolerance - the system continues to operate despite an arbitrary number of messages being dropped or delayed by the network between nodes.
 
 Because partitions in a real network are unavoidable, the practical choice is **CP vs AP**:
 
@@ -795,7 +799,7 @@ db.orders.aggregate([
 - **Indexes** - B-tree by default; built on any field, including nested fields and array elements (multikey index). Without an appropriate index, queries do a **collection scan**.
 - **Replication** - a **replica set** is a primary plus secondaries. Writes go to the primary, then replicate to secondaries asynchronously. Failover elects a new primary if the current one fails.
 - **Sharding** - the **shard key** determines which shard each document lives on. Range-based or hashed. A `mongos` query router fans queries out to relevant shards.
-- **CAP positioning.** With `writeConcern: majority` and `readConcern: majority`, MongoDB acts as a **CP** system; with relaxed concerns, more **AP**.
+- **CAP positioning** *(real-world note, not from the deck).* With `writeConcern: majority` and `readConcern: majority`, MongoDB acts as a **CP** system; with relaxed concerns, more **AP**.
 
 *Find it in the slides:* Lecture 9, slide 90.
 
@@ -928,10 +932,19 @@ RETURN length(p)/2 AS bacon_number
 
 (Arrows point from the fact table to each dimension, the direction of the foreign-key reference.)
 
-**Example for a sales warehouse.**
+**Example #1 - the lecture's Classicmodels star schema (Lecture 12-V2 slide 71, HW4).** This is the schema you should reproduce if a sample question references the Classicmodels sales warehouse:
 
-- One **fact**: `fact_sales(sale_id, date_id, customer_id, product_id, store_id, quantity, amount)`. Surrogate `sale_id` plus four FK columns and two additive measures.
-- Four **dimensions** (the sample-question pattern only asks for two; here are all four for completeness):
+- **Facts (measures):** `quantityOrdered`, `priceEach`, and the derived measure `revenue = quantityOrdered * priceEach`. The fact table joins these measures to its dimension FKs.
+- **Three dimensions:**
+  - `Location(region, country, city)` - location of the customer placing the order.
+  - `Date(year, quarter, month)` - hierarchical date dimension.
+  - `Product(productLine, productScale)` - product taxonomy.
+- **Source operational tables that feed the fact table:** `Customers`, `Orders`, `Orderdetails`, `Products`.
+
+**Example #2 - a generic sales warehouse (textbook style).** Useful if the question is open-ended:
+
+- One **fact**: `fact_sales(sale_id, date_id, customer_id, product_id, store_id, quantity, amount)`. Surrogate `sale_id` plus FK columns and additive measures.
+- Four typical **dimensions**:
   - `dim_customer(customer_id, name, segment, country)`
   - `dim_product(product_id, name, category, brand)`
   - `dim_date(date_id, day, month, quarter, year)`
@@ -941,7 +954,7 @@ RETURN length(p)/2 AS bacon_number
 
 **Snowflake schema** - dimensions are themselves normalized into sub-dimensions. Saves space; costs join effort. Star is preferred unless dimension cardinality is enormous.
 
-*Find it in the slides:* Lecture 12-V2, slides 29-31.
+*Find it in the slides:* Lecture 12-V2, slides 29-31 (concept) and slide 71 (the Classicmodels facts/dimensions for HW4).
 
 ## 8.6 OLAP and the data cube
 
@@ -1029,7 +1042,7 @@ input split N -+-> map -+                          +-> reduce --> output
 
 - An **RDD** is an immutable, partitioned collection of records, plus the **lineage** (sequence of operations) that created it. Lineage is how Spark recomputes lost partitions instead of replicating them.
 - **Lazy evaluation.** `map`, `filter`, `join`, etc. are **transformations** that build the lineage graph but compute nothing. Only **actions** (`collect`, `count`, `save`) trigger execution. The optimizer can fuse and reorder transformations.
-- **DataFrame / Dataset** API adds a relational schema, columnar storage, and the **Catalyst** optimizer - very close to a SQL engine that runs in a distributed cluster.
+- **DataFrame / Dataset** API adds a relational schema and columnar-style execution - very close to a SQL engine that runs in a distributed cluster. (Real Spark calls its optimizer "Catalyst," but the deck does not name it.)
 - **PySpark** is the Python API. Lambdas are shipped to the cluster.
 
 ```python
@@ -1113,19 +1126,25 @@ top.show()
 
 ## 9.5 HTTP verbs and CRUD mapping
 
+**Important - what the lecture actually says.** Lecture 9 slide 109, Lecture 10 slide 87, and Lecture 12-V2 slide 65 all state verbatim:
+
+> "REST only allows four methods: POST (Create), GET (Retrieve), PUT (Update), DELETE (Delete). That's it. That's all you get."
+
+If a written question asks "what HTTP methods does REST define?" or "give the CRUD-to-HTTP mapping," **answer with those four**. PATCH is included in the table below for completeness because it is part of the HTTP spec and used in real APIs, but it is **not** in Prof. Ferguson's slide deck.
+
 | Verb | CRUD | Idempotent? | Safe? | On collection `/orders` | On member `/orders/42` |
 |---|---|---|---|---|---|
 | `GET`    | Read   | yes | yes | List | Retrieve one |
 | `POST`   | Create | no  | no  | Create new (server assigns ID) | Often used for actions |
 | `PUT`    | Update / Replace | yes | no | Replace whole collection (rare) | Replace one (full body) |
-| `PATCH`  | Partial update | no | no | (rare) | Update some fields |
+| `PATCH`  | Partial update *(not in lecture deck)* | no | no | (rare) | Update some fields |
 | `DELETE` | Delete | yes | no | Delete whole collection (rare) | Delete one |
 
 - **Safe** = no side effect on resources.
 - **Idempotent** = repeating the same request has the same effect as one request.
-- **Status codes you should know.** `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`, `500 Server Error`.
+- **Status codes (general HTTP knowledge, not directly in the deck).** `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`, `500 Server Error`.
 
-*Find it in the slides:* Lecture 9, slides 108-110; Lecture 12-V2, slides 67-72.
+*Find it in the slides:* Lecture 9, slides 108-110; Lecture 10, slide 87; Lecture 12-V2, slides 65-67.
 
 ## 9.6 URLs, content types, and query parameters
 
@@ -1146,18 +1165,26 @@ For each entity type that should be exposed over the API:
 4. Identify natural **subresources** (one-to-many) and nest them: `/customers/42/orders`.
 5. For many-to-many, expose the relation as its own collection: `/enrollments` with members like `/enrollments/{student_id}/{section_id}`.
 
-**Sample-question pattern (Course / Section / Participant).**
+**Sample-question pattern (Course / Section / Participant).** This is the layout Prof. Ferguson uses in **Lecture 6 slide 37** and **Lecture 9 slide 110** - flat top-level collections plus *relative navigation paths*. Match this style on the exam:
 
 ```
-GET  /courses/{courseId}/sections                    -- all sections of a course
-GET  /courses/{courseId}/sections/{sectionId}/participants
-                                                     -- all participants in a section
-POST /courses/{courseId}/sections                    -- add a new section
-DELETE /courses/{courseId}/sections/{sectionId}/participants/{personId}
-                                                     -- drop a participant
+-- Top-level collections and members:
+GET, POST   /courses
+GET, PUT, DELETE   /courses/<id>
+GET, POST   /sections
+GET, PUT, DELETE   /sections/<id>
+GET, POST   /participants
+GET, PUT, DELETE   /participants/<id>
+
+-- Relative navigation paths (one-to-many / containment):
+GET   /courses/<id>/sections          -- all sections of a course
+GET   /sections/<id>/participants     -- all participants in a section
+GET   /participants/<id>/sections     -- all sections a participant is in
 ```
 
-The difference between a **resource** and a **collection resource** in this model: a section is a single resource; the set of sections of a course is a collection resource that lists or accepts new sections.
+GET on a collection (`/courses`, `/sections`, etc.) may also take query parameters that the data service translates into SQL `WHERE` predicates (e.g., `GET /customers?country=France&city=Paris`).
+
+The difference between a **resource** and a **collection resource** in this model: a section is a single resource (`/sections/42`); the set of sections of a course is a collection resource (`/courses/W4111/sections`) that lists members or accepts new ones via POST.
 
 ## 9.8 Layered application pattern
 
@@ -1199,7 +1226,7 @@ Use this table to jump back to the original lecture deck. "Slide N" = PDF page N
 | 1NF-5NF summary | Lecture 6 | 74 |
 | Denormalization, materialized views | Lecture 6 | 72, 75-76 |
 | Compilation pipeline / EXPLAIN | Lecture 9 | 9-16 |
-| Selection algorithms (A1-A10) | Lecture 9 | 19-27 |
+| Selection algorithms (A1-A10) | Lecture 9 | 19-26 |
 | Join algorithms (NL, BNL, INL, merge, hash) | Lecture 9 | 28-41 |
 | Duplicate elimination, projection, aggregation | Lecture 9 | 42-44 |
 | Materialization vs pipelining; iterators | Lecture 9 | 45-51 |
@@ -1292,7 +1319,7 @@ Scan these in the last minutes before the exam.
 |---|---|---|---|
 | READ UNCOMMITTED | P | P | P |
 | READ COMMITTED   | - | P | P |
-| REPEATABLE READ  | - | - | P (per SQL standard; MySQL InnoDB blocks via gap locks) |
+| REPEATABLE READ  | - | - | P (lecture: "range locks are not managed"; real MySQL InnoDB usually prevents it via next-key/gap locks) |
 | SERIALIZABLE     | - | - | - |
 
 Snapshot isolation (Oracle, older Postgres) prevents all three but allows **write skew**.
@@ -1337,6 +1364,6 @@ Snapshot isolation (Oracle, older Postgres) prevents all three but allows **writ
 ## B.15 REST
 
 - Six constraints: client-server, stateless, cacheable, uniform interface, layered, code-on-demand.
-- Resources by URL, actions by verbs (GET/POST/PUT/PATCH/DELETE).
-- Collection resource (`/orders`) vs member (`/orders/42`); subresources by nesting.
+- Resources by URL, actions by verbs. **Lecture says four:** GET / POST / PUT / DELETE. (PATCH is real-world but not in the deck.)
+- Collection resource (`/orders`) vs member (`/orders/42`); subresources by nesting (`/courses/<id>/sections`) or as their own top-level collection (`/sections`).
 - Layered app: routes -> resource -> data service -> SQL.
