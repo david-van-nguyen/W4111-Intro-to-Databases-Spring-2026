@@ -59,9 +59,10 @@ toc-depth: 3
 | 1 | x | b |
 | 2 | y | a |
 
-- `A -> B` **holds**: every row with `A=1` has `B=x`; every row with `A=2` has `B=y`.
+- `A -> B` **holds**: every row with `A=1` has `B=x`; the only row with `A=2` has `B=y`.
 - `A -> C` **does NOT hold**: `A=1` appears with both `C=a` and `C=b`. That is a counterexample.
-- `B -> A` **does NOT hold**: `B=x` appears with both `A=1` and `A=2`.
+- `C -> A` **does NOT hold**: `C=a` appears with both `A=1` (row 1) and `A=2` (row 3).
+- `B -> A` **does** hold here (each `B` value goes with one `A`), but remember: data alone can never *prove* an FD - it can only disprove it. The designer asserts which FDs are required to hold on every legal instance.
 
 *Find it in the slides:* Lecture 6, slides 56-58.
 
