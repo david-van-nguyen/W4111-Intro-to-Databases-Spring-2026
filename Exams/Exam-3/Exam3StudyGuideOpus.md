@@ -51,6 +51,18 @@ toc-depth: 3
 
 **Sample-question pattern.** When a question gives sample tuples and asks "which FDs hold based on the data shown," check each candidate `X -> Y` by grouping rows with the same `X` value and verifying they agree on `Y`. A single counterexample disproves it.
 
+**Example.** Given the data:
+
+| A | B | C |
+|---|---|---|
+| 1 | x | a |
+| 1 | x | b |
+| 2 | y | a |
+
+- `A -> B` **holds**: every row with `A=1` has `B=x`; every row with `A=2` has `B=y`.
+- `A -> C` **does NOT hold**: `A=1` appears with both `C=a` and `C=b`. That is a counterexample.
+- `B -> A` **does NOT hold**: `B=x` appears with both `A=1` and `A=2`.
+
 *Find it in the slides:* Lecture 6, slides 56-58.
 
 ## 1.3 Closure (F+) and attribute closure
@@ -71,6 +83,10 @@ repeat:
     if A is a subset of result, then result := result U B
 until result stops changing
 ```
+
+**Worked example.** `R(A, B, C, D, E)` with `F = { A -> B, B -> C, CD -> E }`.
+
+Compute `{A, D}+`: start with `{A, D}`. Apply `A -> B` -> `{A, B, D}`. Apply `B -> C` -> `{A, B, C, D}`. Apply `CD -> E` -> `{A, B, C, D, E} = R`. So `{A, D}` is a **superkey**. `{A}+ = {A, B, C}` is not a superkey (`D, E` missing), so `{A}` alone is not a key but `{A, D}` is a candidate key (and minimal, since `{A}+ != R` and `{D}+ = {D} != R`).
 
 *Find it in the slides:* Lecture 6, slides 59-61.
 
@@ -93,6 +109,8 @@ until result stops changing
 - **Lossless-join decomposition** of `R` into `R1, R2`: the natural join `R1 NATURAL JOIN R2 = R` for every legal instance. The standard sufficient test (binary case): the common attributes `R1 INTERSECT R2` form a superkey of at least one of `R1` or `R2`.
 - **Dependency-preserving decomposition:** every FD in `F` is enforceable by checking only one of the decomposed relations (no need to compute joins to check constraints).
 - A bad decomposition is **lossy**: the natural join produces extra spurious tuples not in the original relation (information is "lost" in the sense that you can no longer reconstruct exactly the original).
+
+**Lossy example.** `R(A, B, C)` with the data `{(1, x, p), (2, x, q)}`. Decompose into `R1(A, B) = {(1,x), (2,x)}` and `R2(B, C) = {(x,p), (x,q)}`. The natural join on `B` gives `{(1,x,p), (1,x,q), (2,x,p), (2,x,q)}` - two spurious tuples. The split is lossy because `B` (the common attribute) is not a superkey of either piece. Compare to the BCNF zip-code split in 1.6: there `zip` is a key of `R1(zip, city)`, so the join recovers `R` exactly.
 
 *Find it in the slides:* Lecture 6, slides 53-55.
 
@@ -248,6 +266,12 @@ Probe phase:
 - **Partitioning step** is needed when `R` is too large for memory: hash both `R` and `S` on the join key into `k` partitions; for each partition `i`, run the in-memory hash join `R_i x S_i`. Each tuple is read and written at most twice.
 - **Hash join is for equi-joins only.** For non-equi-joins, fall back to nested-loop or sort-merge variants.
 
+**Tiny worked example.** `R(id, x) = {(1,A),(2,B),(3,C)}` (build), `S(id, y) = {(2,p),(3,q),(3,r),(4,s)}` (probe), join on `id`.
+
+- Build: `H = {1->(1,A), 2->(2,B), 3->(3,C)}`.
+- Probe: `(2,p)` finds `(2,B)` -> emit `(2,B,p)`. `(3,q)` finds `(3,C)` -> emit `(3,C,q)`. `(3,r)` finds `(3,C)` -> emit `(3,C,r)`. `(4,s)` finds nothing -> dropped.
+- Output: `{(2,B,p), (3,C,q), (3,C,r)}`. Total work: build `|R|=3`, probe `|S|=4`, vs `3*4=12` for nested-loop.
+
 *Find it in the slides:* Lecture 9, slides 28-41.
 
 ## 2.5 Outer vs inner relation in nested-loop joins
@@ -311,6 +335,8 @@ Key rewrite rules used by the optimizer:
 - **Projection** can be pushed too, but you must keep all attributes needed by later operators.
 - Inner joins are **commutative** and **associative**: `R |x| S = S |x| R` and `(R |x| S) |x| T = R |x| (S |x| T)`.
 - **Outer joins are NOT freely commutative or associative.** Pushing predicates through outer joins can change the result.
+
+**Pushdown example.** `sigma_{salary > 100K}(instructor |x| department)` rewrites to `sigma_{salary > 100K}(instructor) |x| department`, because `salary` lives only in `instructor`. If 5% of instructors qualify, the join sees ~5% of the rows it would otherwise. The output is identical; the cost can be 20x lower.
 
 *Find it in the slides:* Lecture 9, slides 57-73; Lecture 10, slides 13-25.
 
@@ -460,6 +486,20 @@ After a crash, the recovery manager runs **three passes** over the log:
 
 **Net effect:** committed transactions are preserved (Durability, Atomicity); uncommitted transactions are completely rolled back (Atomicity).
 
+**Walked-through log example.** Suppose the on-disk log at the moment of the crash is:
+
+```
+LSN 10  T1 update p1: A -> A'
+LSN 20  T2 update p2: B -> B'
+LSN 30  T1 commit
+LSN 40  T2 update p3: C -> C'
+                                  <CRASH>
+```
+
+- **Analysis** sees `T1` has a commit record, `T2` does not. Active set = `{T2}`.
+- **Redo** replays LSN 10, 20, 40 *unconditionally* - the buffer pages may or may not have reached disk, but reapplying logged updates is safe.
+- **Undo** rolls `T2` back, in reverse log order: undo LSN 40 (write CLR), undo LSN 20 (write CLR). `T1`'s update at LSN 10 stays because `T1` committed.
+
 *Find it in the slides:* Lecture 10, slide 54.
 
 ## 4.6 Durability mechanisms beyond the log
@@ -548,6 +588,14 @@ The precedence graph now has the cycle `T1 -> T2 -> T1`, so this schedule is **N
 - **Cascadeless schedules** prevent this by holding writes "private" until commit.
 - **Strict schedules** allow undo to be done with before-images alone (no need to undo intermediate writes).
 
+**Three-line examples.**
+
+| Schedule | Property |
+|---|---|
+| `T1: W(A);  T2: R(A);  T2: COMMIT;  T1: ABORT` | **Not recoverable** - `T2` committed reading uncommitted data, but now `T1` aborts. We would have to "uncommit" `T2`. |
+| `T1: W(A);  T2: R(A);  T1: COMMIT;  T2: COMMIT` | **Recoverable but not cascadeless** - `T2` read uncommitted data, but luckily `T1` committed first. If `T1` had aborted, `T2` would have to abort too (cascade). |
+| `T1: W(A);  T1: COMMIT;  T2: R(A);  T2: COMMIT` | **Cascadeless** (and strict, since no overwrite/read of `A` happened before `T1` committed). |
+
 *Find it in the slides:* Lecture 11, slides 34-36.
 
 ## 5.5 Strict Two-Phase Locking (Strict 2PL)
@@ -567,6 +615,17 @@ The precedence graph now has the cycle `T1 -> T2 -> T1`, so this schedule is **N
 | **S**    | grant | wait |
 | **X**    | wait  | wait |
 
+**Schedule under Strict 2PL.** `T1` and `T2` both want to update `A` then `B` (the classic transfer scenario):
+
+```
+T1: lock-X(A); R(A); W(A); lock-X(B); R(B); W(B); commit; unlock A,B
+T2:                                  lock-X(A) -> WAITS for T1
+                                                  T1 commits, T2 acquires X(A)
+                                  R(A); W(A); lock-X(B); R(B); W(B); commit; unlock
+```
+
+`T2` waits at its first lock request because `T1` still holds `X(A)`. The protocol forces the schedule into the serial order `T1 -> T2`. If both transactions had instead grabbed locks in different orders (e.g., `T1` locks `A` then `B`, `T2` locks `B` then `A`), they would **deadlock** - see 5.8.
+
 *Find it in the slides:* Lecture 11, slides 37-38; Lecture 12-V2, slides 8-12.
 
 ## 5.6 SQL isolation levels and the anomalies they (do not) prevent
@@ -579,9 +638,13 @@ The precedence graph now has the cycle `T1 -> T2 -> T1`, so this schedule is **N
 | **SERIALIZABLE** | prevented | prevented | prevented | prevented |
 
 - **Dirty read.** Read of a value written by a yet-uncommitted transaction.
+  *Example:* `T1: balance := balance + 1000` (uncommitted); `T2: SELECT balance` (sees +1000); `T1 ROLLBACK`. `T2` made decisions on a phantom value.
 - **Non-repeatable read.** Reading the same row twice in one transaction returns different values (because another committed in between).
+  *Example:* `T1: SELECT price FROM item WHERE id=1` -> 10; `T2: UPDATE item SET price=12 WHERE id=1; COMMIT`; `T1: SELECT price FROM item WHERE id=1` -> 12. Same query, two answers.
 - **Phantom read.** Re-running the same range query returns a different set of rows (because another transaction inserted/deleted matching rows).
+  *Example:* `T1: SELECT * FROM emp WHERE dept='CS'` -> 3 rows; `T2: INSERT INTO emp(...,'CS'); COMMIT`; `T1: SELECT * FROM emp WHERE dept='CS'` -> 4 rows. The new row is a "phantom."
 - **Write skew.** Two transactions read overlapping data and write disjoint rows under snapshot isolation, producing an outcome no serial schedule could produce.
+  *Example (on-call doctors):* invariant "at least one doctor on call." Both `T1` and `T2` see two doctors on call, each decides "I can take myself off"; both write disjoint rows; the invariant is now violated, but each saw a "consistent" snapshot.
 
 **Snapshot isolation caveat (Oracle, older PostgreSQL).** Snapshot isolation prevents dirty / non-repeatable / phantom reads but allows **write skew** - and was historically advertised as "Serializable" by some vendors even though it is not.
 
@@ -614,6 +677,10 @@ T2 holds X-lock on B, requests X-lock on A
   - **Wait-die (non-preemptive).** If `T_i` requests a lock held by `T_j`: if `TS(T_i) < TS(T_j)` (T_i is older), `T_i` waits; otherwise, `T_i` is **aborted ("dies")** and restarts with the same TS.
   - **Wound-wait (preemptive).** If `TS(T_i) < TS(T_j)`, `T_i` **wounds** `T_j` (forces `T_j` to abort); otherwise, `T_i` waits.
   - In both, **older transactions are favored**, so no transaction can be repeatedly aborted forever (no starvation): on restart it keeps its old (low) timestamp.
+
+  **Worked example.** `TS(T1)=10` (older), `TS(T2)=20` (younger). `T1` holds `A`; `T2` holds `B`. Then both ask for the other's lock:
+  - **Wait-die:** `T1` requests `B` (held by younger `T2`) -> older requesting younger, so `T1` **waits**. `T2` requests `A` (held by older `T1`) -> younger requesting older, so `T2` **dies** (aborts, restarts with `TS=20`).
+  - **Wound-wait:** `T1` requests `B` (held by younger `T2`) -> older preempts younger, so `T1` **wounds** `T2` (kills it). `T2` restarts. If instead `T2` had asked first: younger requesting older -> `T2` **waits**.
 - **Timeouts.** Simplest: any transaction that waits too long is aborted. Cheap, but tunes badly (false positives on heavy load, real deadlocks linger if timeout too long).
 
 **Detection + recovery (allow deadlocks, fix after the fact):**
@@ -648,6 +715,8 @@ T2 holds X-lock on B, requests X-lock on A
 
 **When to prefer BASE.** When availability and partition tolerance trump immediate consistency: e.g., a globally distributed product catalog, a like counter, an analytics ingestion pipeline.
 
+**Concrete example.** A user adds an item to a shopping cart. The write hits the `us-east` replica and returns success. A second later, the same user reads from the `eu-west` replica and may *not yet* see the item (replication lag). After replication completes, all replicas converge. This is acceptable for a cart, a "like" count, or a follower count - and unacceptable for a bank balance, where strong consistency is mandatory.
+
 *Find it in the slides:* Lecture 10, slides 70-74; Lecture 11, slides 45-50.
 
 ## 6.2 The CAP theorem
@@ -677,6 +746,11 @@ Because partitions in a real network are unavoidable, the practical choice is **
 
 Because partitions in a real network are unavoidable, **CA is rarely a real choice**; pick **CP** or **AP**.
 
+**Concrete example.** A bank has a NY primary and an SF replica. The transatlantic link drops.
+
+- **CP choice:** SF refuses writes (and possibly reads) until the link is restored. Customers in California get error pages; the two sides cannot diverge.
+- **AP choice:** Both NY and SF accept writes locally. Both stay available, but a customer's balance now exists in two diverged versions; reconciliation logic (last-write-wins, version vectors, conflict-resolution policies) merges them when the partition heals.
+
 *Find it in the slides:* Lecture 10, slide 75; Lecture 11, slides 51.
 
 ## 6.3 Scale-up vs scale-out
@@ -704,6 +778,13 @@ Because partitions in a real network are unavoidable, **CA is rarely a real choi
 - **Sharding (MongoDB)** - documents are partitioned across shards by a **shard key** (range or hash). Each shard is itself a replica set.
 - **Partitioning (DynamoDB)** - items are partitioned by **partition key** (hashed to a partition). Each partition is replicated three ways across availability zones.
 - **Trade-off.** Sharding scales reads/writes nearly linearly with the number of shards as long as the workload is well-distributed by the key. Hot keys, cross-shard transactions, and cross-shard joins are the failure modes.
+
+**Concrete example.** An `orders` collection sharded by hashed `customer_id` across three shards `A, B, C`:
+
+- All orders for `customer_id = 42` live on whichever shard `hash(42) mod 3` selects (say `B`); each shard is itself a 3-node replica set.
+- A query `db.orders.find({customer_id: 42})` is routed by `mongos` to **only shard B**.
+- A query `db.orders.find({status: "PAID"})` has to **fan out** to all three shards (no shard-key filter), and `mongos` merges the results.
+- A bad shard-key choice - e.g., `created_date` - creates a hot partition: every new order goes to today's shard. Hashed keys avoid this.
 
 *Find it in the slides:* Lecture 10, slides 76-79.
 
@@ -988,6 +1069,40 @@ RETURN length(p)/2 AS bacon_number
 
 **Hierarchies** in dimensions enable roll-up and drill-down (e.g., `date: day -> month -> quarter -> year`; `store: store -> city -> region -> country`).
 
+**Concrete examples on the Classicmodels star schema** (`fact_sales` joined to `Date`, `Location`, `Product` dimensions; measure = `revenue`):
+
+```sql
+-- Slice (fix one dimension to a single value)
+SELECT productLine, SUM(revenue)
+FROM fact_sales JOIN Date USING(date_id) JOIN Product USING(product_id)
+WHERE year = 2024
+GROUP BY productLine;
+
+-- Dice (filter on multiple dimensions to subsets)
+SELECT region, productLine, SUM(revenue)
+FROM fact_sales JOIN Location USING(location_id) JOIN Product USING(product_id)
+WHERE region IN ('EMEA','NA') AND productLine IN ('Classic Cars','Trucks')
+GROUP BY region, productLine;
+
+-- Roll-up (aggregate up the location hierarchy: city -> country)
+SELECT country, SUM(revenue)
+FROM fact_sales JOIN Location USING(location_id)
+GROUP BY country;
+
+-- Drill-down (finer granularity within France)
+SELECT city, SUM(revenue)
+FROM fact_sales JOIN Location USING(location_id)
+WHERE country = 'France'
+GROUP BY city;
+
+-- Pivot (year on rows, productLine on columns)
+SELECT year,
+  SUM(CASE WHEN productLine='Classic Cars' THEN revenue END) AS classic_cars,
+  SUM(CASE WHEN productLine='Trucks'       THEN revenue END) AS trucks
+FROM fact_sales JOIN Date USING(date_id) JOIN Product USING(product_id)
+GROUP BY year;
+```
+
 **Implementation reality.** Modern OLAP is mostly **ROLAP** - the cube is virtual, expressed as SQL on a star schema using `GROUP BY ... ROLLUP/CUBE`. Materialized views accelerate the common roll-ups.
 
 *Find it in the slides:* Lecture 12-V2, slides 32-42.
@@ -1033,6 +1148,22 @@ input split N -+-> map -+                          +-> reduce --> output
 - **Why blocks matter.** Files are split into fixed-size **blocks** (HDFS default 64-128 MB). Each block becomes the input to one map task that runs **on the node holding the block** (data locality), enabling massive parallelism.
 - **Why streams alone are insufficient.** A naive line-by-line stream forces all records through one consumer; the block model is what lets the framework spread work across thousands of nodes.
 - **Hive and Pig** sit on top of MapReduce: SQL-like (Hive) or dataflow-like (Pig) languages that compile to MR jobs. Modern stacks (Tez, Spark) replaced raw MR while preserving the SQL surface.
+
+**Canonical example: word count.** Count occurrences of each word across many documents.
+
+```
+map(docId, text):                          reduce(word, list_of_counts):
+  for word in text.split():                  emit (word, sum(list_of_counts))
+    emit (word, 1)
+```
+
+For the input `"the cat sat on the mat"`:
+
+- `map` emits `(the,1) (cat,1) (sat,1) (on,1) (the,1) (mat,1)`.
+- The framework **shuffles**, grouping by key: `the -> [1,1]`, `cat -> [1]`, ...
+- `reduce` emits `(the,2) (cat,1) (sat,1) (on,1) (mat,1)`.
+
+The same code runs unchanged on a 1 GB or 1 PB corpus; the framework just spawns more map and reduce tasks across the cluster.
 
 *Find it in the slides:* Lecture 11, slides 67-71; Lecture 12-V2, slides 46-49.
 
@@ -1144,6 +1275,28 @@ If a written question asks "what HTTP methods does REST define?" or "give the CR
 - **Idempotent** = repeating the same request has the same effect as one request.
 - **Status codes (general HTTP knowledge, not directly in the deck).** `200 OK`, `201 Created`, `204 No Content`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`, `500 Server Error`.
 
+**Concrete request/response examples (an `/orders` API).**
+
+```
+POST /orders                               -> 201 Created
+  Body: {"customer":42, "amount":99}          Location: /orders/77
+                                              Body: {"id":77, ...}
+
+GET  /orders/77                            -> 200 OK
+                                              Body: {"id":77, "customer":42, "amount":99}
+
+PUT  /orders/77                            -> 200 OK   (full replacement; idempotent)
+  Body: {"customer":42, "amount":120}
+
+PATCH /orders/77                           -> 200 OK   (partial; not in lecture)
+  Body: {"amount":120}
+
+DELETE /orders/77                          -> 204 No Content   (idempotent)
+DELETE /orders/77                          -> 404 Not Found    (still "the resource is gone")
+```
+
+Notice that `POST` is **not idempotent**: two `POST /orders` requests create two orders (`/orders/77` and `/orders/78`). `PUT /orders/77` twice with the same body produces the same final state.
+
 *Find it in the slides:* Lecture 9, slides 108-110; Lecture 10, slide 87; Lecture 12-V2, slides 65-67.
 
 ## 9.6 URLs, content types, and query parameters
@@ -1152,6 +1305,23 @@ If a written question asks "what HTTP methods does REST define?" or "give the CR
 - The query parameters typically translate directly into **SQL `WHERE`** clauses or MongoDB filters in the data service.
 - Content negotiation via `Accept` header and `Content-Type` of the response: `application/json` is the default for REST APIs.
 - For collections, **standardize pagination** (`?page=`, `?limit=`, `?after=`) and **sorting** (`?sort=name,-createdAt`).
+
+**Concrete translation example.**
+
+```
+GET /customers?country=France&city=Paris&page=2&limit=50
+```
+
+```sql
+SELECT *
+FROM   customers
+WHERE  country = 'France'
+  AND  city    = 'Paris'
+ORDER  BY customer_id
+LIMIT  50 OFFSET 50;        -- page 2, 50 per page
+```
+
+The route handler reads the query string, the resource layer adds authorization checks, the data service builds and parameterizes the SQL, and the result rows are serialized as JSON. The same query parameters could also be translated into a Mongo filter `{country:"France", city:"Paris"}` with `.skip(50).limit(50)`.
 
 *Find it in the slides:* Lecture 12-V2, slides 67-72.
 
